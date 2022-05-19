@@ -1,13 +1,13 @@
 use crate::Error;
+use crate::ImportSection;
 use crate::TypeSection;
 use crate::ValidationError;
-use crate::ImportSection;
 
 pub struct Module {
     optimize: bool,
     validate: bool,
     type_section: Option<TypeSection>,
-    import_section: Option<ImportSection>
+    import_section: Option<ImportSection>,
 }
 
 impl Module {

@@ -1,9 +1,9 @@
 use crate::Error;
 use crate::ExternalKind;
 use crate::Section;
-use std::io::Write;
-use leb128::write;
 use crate::ValidationError;
+use leb128::write;
+use std::io::Write;
 
 pub struct ImportSection {
     imports: Vec<(String, String, ExternalKind)>,
@@ -22,7 +22,8 @@ impl ImportSection {
         external_name: T,
         kind: ExternalKind,
     ) -> usize {
-        self.imports.push((module_name.into(), external_name.into(), kind));
+        self.imports
+            .push((module_name.into(), external_name.into(), kind));
         self.imports.len() - 1
     }
 
@@ -45,11 +46,11 @@ impl ImportSection {
                 ExternalKind::Memory(mem_descriptor) | ExternalKind::Table(mem_descriptor) => {
                     if let Some(v) = mem_descriptor.maximum {
                         if v < mem_descriptor.minimum {
-                            return Err(ValidationError::InvalidMemorySetting)
+                            return Err(ValidationError::InvalidMemorySetting);
                         }
                     }
                 }
-                _ => {},
+                _ => {}
             }
         }
 
@@ -66,15 +67,15 @@ impl Section for ImportSection {
         let mut written = 0;
         written += writer.write(&[self.id()])?;
         written += write::unsigned(writer, self.count() as u64)?;
-        
+
         for (module_name, external_name, kind) in self.imports {
             written += write::unsigned(writer, module_name.len() as u64)?;
             written += writer.write(module_name.as_bytes())?;
 
             written += write::unsigned(writer, external_name.len() as u64)?;
             written += writer.write(external_name.as_bytes())?;
-            
-            written += writer.write(&[kind.into()])?;
+
+            written += kind.encode(writer)?;
         }
 
         Ok(written)
