@@ -4,8 +4,7 @@ use std::io::Error as StdioError;
 pub enum Error {
     CompileError(CompileError),
     ValidationError(ValidationError),
-    IoError(Box<StdioError>)
-    // OptimizationError(OptimizationError),
+    IoError(Box<StdioError>), // OptimizationError(OptimizationError),
 }
 
 #[derive(Debug, Clone, Copy)]
@@ -14,9 +13,11 @@ pub enum CompileError {}
 #[derive(Debug, Clone, Copy)]
 pub enum ValidationError {
     InvalidSignature,
+    InvalidIndex,
     UnexpectedEOF,
     ArrayOverflow,
     ArrayTooLittleElements,
+    InvalidMemorySetting,
     SectionMissing(&'static str),
 }
 

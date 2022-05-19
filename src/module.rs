@@ -1,11 +1,13 @@
 use crate::Error;
 use crate::TypeSection;
 use crate::ValidationError;
+use crate::ImportSection;
 
 pub struct Module {
     optimize: bool,
     validate: bool,
     type_section: Option<TypeSection>,
+    import_section: Option<ImportSection>
 }
 
 impl Module {
@@ -14,6 +16,7 @@ impl Module {
             optimize,
             validate,
             type_section: None,
+            import_section: None,
         }
     }
 
@@ -33,7 +36,11 @@ impl Module {
     fn validate(&self) -> Result<(), ValidationError> {
         match &self.type_section {
             Some(v) => v.validate()?,
-            None => return Err(ValidationError::SectionMissing("Type Section"))
+            None => return Err(ValidationError::SectionMissing("Type Section")),
+        }
+
+        if let Some(v) = &self.import_section {
+            v.validate()?;
         }
 
         Ok(())

@@ -3,7 +3,6 @@ use crate::Section;
 use crate::ValType;
 use crate::ValidationError;
 use leb128::write;
-
 use std::io::Write;
 
 #[derive(Debug)]
@@ -54,20 +53,20 @@ impl TypeSection {
 impl Section for TypeSection {
     fn compile(self, writer: &mut impl Write) -> Result<usize, Error> {
         let mut written = 0;
-        writer.write(&[self.id()])?;
-        written += write::unsigned(writer, self.type_definitions.len() as u64)?;
-        
-        for (params, results) in self.type_definitions {
-            writer.write(&[0x60])?;
+        written += writer.write(&[self.id()])?;
+        written += write::unsigned(writer, self.count() as u64)?;
 
-            write::unsigned(writer, params.len() as u64)?;
+        for (params, results) in self.type_definitions {
+            written += writer.write(&[ValType::Func.into()])?;
+
+            written += write::unsigned(writer, params.len() as u64)?;
             for x in params {
-                write::unsigned(writer, x as u64)?;
+                written += writer.write(&[x.into()])?;
             }
 
-            write::unsigned(writer, results.len() as u64)?;
+            written += write::unsigned(writer, results.len() as u64)?;
             for x in results {
-                write::unsigned(writer, x as u64)?;
+                written += writer.write(&[x.into()])?;
             }
         }
 
@@ -80,7 +79,7 @@ impl Section for TypeSection {
         0x01
     }
 
-    fn declaration_count(&self) -> usize {
+    fn count(&self) -> usize {
         self.type_definitions.len()
     }
 }

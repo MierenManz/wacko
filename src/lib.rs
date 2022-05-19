@@ -1,11 +1,14 @@
 mod errors;
+mod external_kind;
 mod instructions;
+mod memory;
 mod module;
 mod section;
 mod sections;
 mod value_type;
-
 pub use errors::*;
+pub use external_kind::ExternalKind;
+pub use memory::ResizableLimits;
 pub use module::Module;
 pub use section::*;
 pub use sections::*;

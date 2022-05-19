@@ -1,5 +1,5 @@
 #[repr(u8)]
-#[derive(Copy, Clone, Debug)]
+#[derive(Copy, Clone, Debug, PartialEq)]
 pub enum ValType {
     I32 = 0x7F,
     I64 = 0x7E,
@@ -8,4 +8,10 @@ pub enum ValType {
     FuncRef = 0x70,
     Func = 0x60,
     Void = 0x40,
+}
+
+impl From<ValType> for u8 {
+    fn from(v: ValType) -> Self {
+        v as Self
+    }
 }
