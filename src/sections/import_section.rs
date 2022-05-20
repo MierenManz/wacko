@@ -60,10 +60,6 @@ impl ImportSection {
 
 impl Section for ImportSection {
     fn compile(self, writer: &mut impl Write) -> Result<usize, Error> {
-        if self.count() == 0 {
-            return Ok(0);
-        }
-
         let mut written = 0;
         written += writer.write(&[self.id()])?;
         written += write::unsigned(writer, self.count() as u64)?;

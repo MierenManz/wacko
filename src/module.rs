@@ -1,4 +1,5 @@
 use crate::Error;
+use crate::FunctionSection;
 use crate::ImportSection;
 use crate::TypeSection;
 use crate::ValidationError;
@@ -8,6 +9,7 @@ pub struct Module {
     validate: bool,
     type_section: Option<TypeSection>,
     import_section: Option<ImportSection>,
+    fn_section: Option<FunctionSection>,
 }
 
 impl Module {
@@ -17,7 +19,20 @@ impl Module {
             validate,
             type_section: None,
             import_section: None,
+            fn_section: None,
         }
+    }
+
+    pub fn set_type_section(&mut self, section: TypeSection) {
+        self.type_section = Some(section);
+    }
+
+    pub fn set_import_section(&mut self, section: ImportSection) {
+        self.import_section = Some(section);
+    }
+
+    pub fn set_fn_section(&mut self, section: FunctionSection) {
+        self.fn_section = Some(section);
     }
 
     pub fn compile(self) -> Result<Vec<u8>, Error> {
