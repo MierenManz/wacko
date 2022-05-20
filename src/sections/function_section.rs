@@ -49,3 +49,9 @@ impl Section for FunctionSection {
         self.declarations.len()
     }
 }
+
+impl Default for FunctionSection {
+    fn default() -> Self {
+        Self::new()
+    }
+}

@@ -85,3 +85,9 @@ impl Section for ImportSection {
         self.imports.len()
     }
 }
+
+impl Default for ImportSection {
+    fn default() -> Self {
+        Self::new()
+    }
+}

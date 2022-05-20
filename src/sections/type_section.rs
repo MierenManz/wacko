@@ -83,3 +83,9 @@ impl Section for TypeSection {
         self.type_definitions.len()
     }
 }
+
+impl Default for TypeSection {
+    fn default() -> Self {
+        Self::new()
+    }
+}
