@@ -1,4 +1,5 @@
 use crate::Error;
+use crate::ValidationError;
 use leb128::write;
 use std::io::Write;
 
@@ -19,5 +20,14 @@ impl ResizableLimits {
             written += write::unsigned(writer, v as u64)?;
         }
         Ok(written)
+    }
+    pub(crate) fn validate(&self) -> Result<(), ValidationError> {
+        if let Some(v) = self.maximum {
+            if v < self.minimum {
+                return Err(ValidationError::InvalidMemorySetting);
+            }
+        }
+
+        Ok(())
     }
 }
