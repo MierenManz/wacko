@@ -79,6 +79,9 @@ impl Module {
         //     return Err(ValidationError::TooManyFnBodies);
         // }
 
+        self.type_section.validate()?;
+        // self.code_section.validate()?;
+
         if let Some(section) = &self.import_section {
             section.validate()?;
         }
