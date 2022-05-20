@@ -20,6 +20,8 @@ pub enum ValidationError {
     InvalidMemorySetting,
     SectionMissing(&'static str),
     InvalidType,
+    TooManyFnBodies,
+    TooManyFnDeclarations,
 }
 
 impl From<CompileError> for Error {
