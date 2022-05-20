@@ -1,6 +1,7 @@
 use crate::Error;
 use crate::FunctionSection;
 use crate::ImportSection;
+use crate::MemorySection;
 use crate::TableSection;
 use crate::TypeSection;
 use crate::ValidationError;
@@ -12,6 +13,7 @@ pub struct Module {
     import_section: Option<ImportSection>,
     fn_section: Option<FunctionSection>,
     table_section: Option<TableSection>,
+    memory_section: Option<MemorySection>,
 }
 
 impl Module {
@@ -23,6 +25,7 @@ impl Module {
             import_section: None,
             fn_section: None,
             table_section: None,
+            memory_section: None,
         }
     }
 
@@ -53,19 +56,21 @@ impl Module {
     fn optimize(&self) {}
     fn validate(&self) -> Result<(), ValidationError> {
         match &self.type_section {
-            Some(v) => v.validate()?,
+            Some(section) => section.validate()?,
             None => return Err(ValidationError::SectionMissing("Type Section")),
         }
 
-        if let Some(v) = &self.import_section {
-            v.validate()?;
+        if let Some(section) = &self.import_section {
+            section.validate()?;
         }
         // Function section is skipped because it doesn't have anything to validate internally
 
-        if let Some(v) = &self.table_section {
-            v.validate()?;
+        if let Some(section) = &self.table_section {
+            section.validate()?;
         }
-
+        if let Some(section) = &self.memory_section {
+            section.validate()?;
+        }
         Ok(())
     }
 }
