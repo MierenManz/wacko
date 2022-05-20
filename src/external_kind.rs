@@ -1,4 +1,5 @@
 use crate::Error;
+use crate::GlobalDescriptor;
 use crate::ResizableLimits;
 use crate::ValType;
 use leb128::write;
@@ -9,7 +10,7 @@ pub enum ExternalKind {
     Function(u32),
     Table(ResizableLimits),
     Memory(ResizableLimits),
-    Global(ValType, bool),
+    Global(GlobalDescriptor),
 }
 
 impl ExternalKind {
@@ -27,8 +28,8 @@ impl ExternalKind {
             Self::Memory(mem_desc) => {
                 written += mem_desc.encode(writer)?;
             }
-            Self::Global(v, is_mut) => {
-                written += writer.write(&[v.into(), is_mut as u8])?;
+            Self::Global(descriptor) => {
+                written += descriptor.encode(writer)?;
             }
         }
 
@@ -42,7 +43,7 @@ impl From<ExternalKind> for u8 {
             ExternalKind::Function(_) => 0x00,
             ExternalKind::Table(_) => 0x01,
             ExternalKind::Memory(_) => 0x02,
-            ExternalKind::Global(_, _) => 0x03,
+            ExternalKind::Global(_) => 0x03,
         }
     }
 }

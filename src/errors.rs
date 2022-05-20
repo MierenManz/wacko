@@ -19,6 +19,7 @@ pub enum ValidationError {
     ArrayTooLittleElements,
     InvalidMemorySetting,
     SectionMissing(&'static str),
+    InvalidType,
 }
 
 impl From<CompileError> for Error {

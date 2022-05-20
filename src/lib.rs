@@ -1,5 +1,6 @@
 mod errors;
 mod external_kind;
+mod global;
 mod instructions;
 mod memory;
 mod module;
@@ -8,6 +9,7 @@ mod sections;
 mod value_type;
 pub use errors::*;
 pub use external_kind::ExternalKind;
+pub use global::GlobalDescriptor;
 pub use memory::ResizableLimits;
 pub use module::Module;
 pub use section::*;
