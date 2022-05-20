@@ -1,6 +1,7 @@
 use crate::Error;
 use crate::ResizableLimits;
 use crate::Section;
+use crate::ValType;
 use crate::ValidationError;
 use leb128::write;
 use std::io::Write;
@@ -45,6 +46,7 @@ impl Section for TableSection {
         written += write::unsigned(writer, self.count() as u64)?;
 
         for x in self.descriptors {
+            written += writer.write(&[ValType::FuncRef.into()])?;
             written += x.encode(writer)?;
         }
 
