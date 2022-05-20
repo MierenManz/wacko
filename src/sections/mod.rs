@@ -3,6 +3,8 @@ mod import_section;
 mod memory_section;
 mod table_section;
 mod type_section;
+mod global_section;
+pub use global_section::GlobalSection;
 pub use function_section::FunctionSection;
 pub use import_section::ImportSection;
 pub use memory_section::MemorySection;
