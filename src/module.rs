@@ -1,6 +1,7 @@
 use crate::Error;
 use crate::FunctionSection;
 use crate::ImportSection;
+use crate::TableSection;
 use crate::TypeSection;
 use crate::ValidationError;
 
@@ -10,6 +11,7 @@ pub struct Module {
     type_section: Option<TypeSection>,
     import_section: Option<ImportSection>,
     fn_section: Option<FunctionSection>,
+    table_section: Option<TableSection>,
 }
 
 impl Module {
@@ -20,6 +22,7 @@ impl Module {
             type_section: None,
             import_section: None,
             fn_section: None,
+            table_section: None,
         }
     }
 
@@ -55,6 +58,11 @@ impl Module {
         }
 
         if let Some(v) = &self.import_section {
+            v.validate()?;
+        }
+        // Function section is skipped because it doesn't have anything to validate internally
+
+        if let Some(v) = &self.table_section {
             v.validate()?;
         }
 
