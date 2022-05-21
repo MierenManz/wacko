@@ -1,9 +1,9 @@
+use crate::Error;
 use crate::GlobalDescriptor;
 use crate::Section;
+use crate::ValidationError;
 use leb128::write;
 use std::io::Write;
-use crate::Error;
-use crate::ValidationError;
 
 pub struct GlobalSection {
     descriptors: Vec<GlobalDescriptor>,
