@@ -43,11 +43,13 @@ impl ImportSection {
 
         for (_, _, kind) in &self.imports {
             match kind {
-                ExternalKind::Memory(mem_descriptor) | ExternalKind::Table(mem_descriptor) => {
-                    if let Some(v) = mem_descriptor.maximum {
-                        if v < mem_descriptor.minimum {
-                            return Err(ValidationError::InvalidMemorySetting);
-                        }
+                ExternalKind::Memory(descriptor) | ExternalKind::Table(descriptor) => {
+                    descriptor.validate()?;
+                }
+                ExternalKind::Global(descriptor) => {
+                    descriptor.validate()?;
+                    if descriptor.is_mut() {
+                        return Err(ValidationError::MutatableImport);
                     }
                 }
                 _ => {}

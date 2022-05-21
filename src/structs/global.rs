@@ -25,4 +25,7 @@ impl GlobalDescriptor {
             _ => Ok(()),
         }
     }
+    pub(crate) fn is_mut(&self) -> bool {
+        self.mutable
+    }
 }

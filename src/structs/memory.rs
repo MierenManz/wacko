@@ -21,6 +21,7 @@ impl ResizableLimits {
         }
         Ok(written)
     }
+
     pub(crate) fn validate(&self) -> Result<(), ValidationError> {
         if let Some(v) = self.maximum {
             if v < self.minimum {
