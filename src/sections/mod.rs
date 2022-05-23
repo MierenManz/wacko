@@ -5,6 +5,7 @@ mod import_section;
 mod memory_section;
 mod table_section;
 mod type_section;
+pub use export_section::ExportKind;
 pub use export_section::ExportSection;
 pub use function_section::FunctionSection;
 pub use global_section::GlobalSection;

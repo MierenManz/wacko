@@ -2,13 +2,9 @@ use std::io::Error as StdioError;
 
 #[derive(Debug)]
 pub enum Error {
-    CompileError(CompileError),
     ValidationError(ValidationError),
     IoError(Box<StdioError>), // OptimizationError(OptimizationError),
 }
-
-#[derive(Debug, Clone, Copy)]
-pub enum CompileError {}
 
 #[derive(Debug, Clone, Copy)]
 pub enum ValidationError {
@@ -23,12 +19,6 @@ pub enum ValidationError {
     TooManyFnBodies,
     TooManyFnDeclarations,
     MutatableImport,
-}
-
-impl From<CompileError> for Error {
-    fn from(err: CompileError) -> Self {
-        Self::CompileError(err)
-    }
 }
 
 impl From<ValidationError> for Error {
