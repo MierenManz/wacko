@@ -70,6 +70,7 @@ impl Section for ExportSection {
             written += write::unsigned(writer, v as u64)?;
         }
 
+        writer.flush()?;
         Ok(written)
     }
 

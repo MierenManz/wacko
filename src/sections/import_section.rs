@@ -76,6 +76,7 @@ impl Section for ImportSection {
             written += kind.encode(writer)?;
         }
 
+        writer.flush()?;
         Ok(written)
     }
 

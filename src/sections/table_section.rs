@@ -50,6 +50,7 @@ impl Section for TableSection {
             written += x.encode(writer)?;
         }
 
+        writer.flush()?;
         Ok(written)
     }
 

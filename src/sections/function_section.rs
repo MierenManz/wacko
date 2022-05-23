@@ -38,6 +38,7 @@ impl Section for FunctionSection {
             written += write::unsigned(writer, x as u64)?;
         }
 
+        writer.flush()?;
         Ok(written)
     }
 

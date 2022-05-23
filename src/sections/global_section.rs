@@ -48,6 +48,7 @@ impl Section for GlobalSection {
         for x in self.descriptors {
             written += x.encode(writer)?;
         }
+        writer.flush()?;
         Ok(written)
     }
 
