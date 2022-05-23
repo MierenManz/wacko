@@ -5,7 +5,7 @@ mod sections;
 mod structs;
 pub use errors::*;
 pub use module::Module;
-pub use section::*;
+pub use section::Section;
 pub use sections::*;
 pub use structs::ExternalKind;
 pub use structs::GlobalDescriptor;
