@@ -7,6 +7,13 @@ pub enum Error {
 }
 
 #[derive(Debug, Clone, Copy)]
+pub enum RequiredSection {
+    TypeSection,
+    FunctionSection,
+    CodeSection
+}
+
+#[derive(Debug, Clone, Copy)]
 pub enum ValidationError {
     InvalidSignature,
     InvalidIndex,
@@ -14,7 +21,7 @@ pub enum ValidationError {
     ArrayOverflow,
     ArrayTooLittleElements,
     InvalidMemorySetting,
-    SectionMissing(&'static str),
+    SectionMissing(RequiredSection),
     InvalidType,
     TooManyFnBodies,
     TooManyFnDeclarations,

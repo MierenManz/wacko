@@ -7,6 +7,8 @@ use crate::Section;
 use crate::TableSection;
 use crate::TypeSection;
 use crate::ValidationError;
+use crate::ExportSection;
+use crate::RequiredSection;
 
 pub struct Module {
     optimize: bool,
@@ -17,6 +19,7 @@ pub struct Module {
     table_section: Option<TableSection>,
     memory_section: Option<MemorySection>,
     global_section: Option<GlobalSection>,
+    export_section: Option<ExportSection>
 }
 
 impl Module {
@@ -30,6 +33,7 @@ impl Module {
             table_section: None,
             memory_section: None,
             global_section: None,
+            export_section: None,
         }
     }
 
@@ -43,6 +47,22 @@ impl Module {
 
     pub fn set_fn_section(&mut self, section: FunctionSection) {
         self.fn_section = section;
+    }
+
+    pub fn set_table_section(&mut self, section: TableSection) {
+        self.table_section = Some(section);
+    }
+
+    pub fn set_memory_section(&mut self, section: MemorySection) {
+        self.memory_section = Some(section);
+    }
+
+    pub fn set_global_section(&mut self, section: GlobalSection) {
+        self.global_section = Some(section);
+    }
+
+    pub fn set_export_section(&mut self, section: ExportSection) {
+        self.export_section = Some(section);
     }
 
     pub fn compile(self) -> Result<Vec<u8>, Error> {
@@ -60,15 +80,15 @@ impl Module {
     fn optimize(&self) {}
     fn validate(&self) -> Result<(), ValidationError> {
         if self.type_section.count() == 0 {
-            return Err(ValidationError::SectionMissing("Type Section"));
+            return Err(ValidationError::SectionMissing(RequiredSection::TypeSection));
         }
 
         if self.fn_section.count() == 0 {
-            return Err(ValidationError::SectionMissing("Function Section"));
+            return Err(ValidationError::SectionMissing(RequiredSection::FunctionSection));
         }
 
         // if self.code_section.count() == 0 {
-        //     return Err(ValidationError::SectionMissing("Code Section"))
+        //     return Err(ValidationError::SectionMissing(RequiredSection::CodeSection))
         // }
 
         // if self.code_section.count() < self.fn_section.count() {
