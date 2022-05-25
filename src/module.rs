@@ -1,14 +1,14 @@
 use crate::Error;
+use crate::ExportSection;
 use crate::FunctionSection;
 use crate::GlobalSection;
 use crate::ImportSection;
 use crate::MemorySection;
+use crate::RequiredSection;
 use crate::Section;
 use crate::TableSection;
 use crate::TypeSection;
 use crate::ValidationError;
-use crate::ExportSection;
-use crate::RequiredSection;
 
 pub struct Module {
     optimize: bool,
@@ -19,7 +19,7 @@ pub struct Module {
     table_section: Option<TableSection>,
     memory_section: Option<MemorySection>,
     global_section: Option<GlobalSection>,
-    export_section: Option<ExportSection>
+    export_section: Option<ExportSection>,
 }
 
 impl Module {
@@ -80,11 +80,15 @@ impl Module {
     fn optimize(&self) {}
     fn validate(&self) -> Result<(), ValidationError> {
         if self.type_section.count() == 0 {
-            return Err(ValidationError::SectionMissing(RequiredSection::TypeSection));
+            return Err(ValidationError::SectionMissing(
+                RequiredSection::TypeSection,
+            ));
         }
 
         if self.fn_section.count() == 0 {
-            return Err(ValidationError::SectionMissing(RequiredSection::FunctionSection));
+            return Err(ValidationError::SectionMissing(
+                RequiredSection::FunctionSection,
+            ));
         }
 
         // if self.code_section.count() == 0 {

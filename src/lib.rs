@@ -9,16 +9,21 @@ pub use section::Section;
 pub use sections::*;
 pub use structs::ExternalKind;
 pub use structs::GlobalDescriptor;
+pub use structs::Instruction;
 pub use structs::ResizableLimits;
 pub use structs::ValType;
-pub use structs::Instruction;
+pub use structs::FnBody;
 
+#[cfg(test)]
 mod test {
-    use super::ValType;
-    use super::Instruction;
     #[test]
     fn test() {
-        println!("Instruction size: {} bytes", std::mem::size_of::<Instruction>());
+        use crate::Instruction;
+        use crate::ValType;
+        println!(
+            "Instruction size: {} bytes",
+            std::mem::size_of::<Instruction>()
+        );
         println!("Value type size:  {} bytes", std::mem::size_of::<ValType>())
     }
 }

@@ -10,7 +10,7 @@ pub enum Error {
 pub enum RequiredSection {
     TypeSection,
     FunctionSection,
-    CodeSection
+    CodeSection,
 }
 
 #[derive(Debug, Clone, Copy)]
