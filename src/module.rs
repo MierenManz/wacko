@@ -9,6 +9,7 @@ use crate::Section;
 use crate::TableSection;
 use crate::TypeSection;
 use crate::ValidationError;
+use crate::CodeSection;
 
 pub struct Module {
     optimize: bool,
@@ -20,6 +21,7 @@ pub struct Module {
     memory_section: Option<MemorySection>,
     global_section: Option<GlobalSection>,
     export_section: Option<ExportSection>,
+    code_section: CodeSection,
 }
 
 impl Module {
@@ -34,6 +36,7 @@ impl Module {
             memory_section: None,
             global_section: None,
             export_section: None,
+            code_section: CodeSection::default()
         }
     }
 
@@ -91,17 +94,17 @@ impl Module {
             ));
         }
 
-        // if self.code_section.count() == 0 {
-        //     return Err(ValidationError::SectionMissing(RequiredSection::CodeSection))
-        // }
+        if self.code_section.count() == 0 {
+            return Err(ValidationError::SectionMissing(RequiredSection::CodeSection))
+        }
 
-        // if self.code_section.count() < self.fn_section.count() {
-        //     return Err(ValidationError::TooManyFnDeclarations);
-        // }
+        if self.code_section.count() < self.fn_section.count() {
+            return Err(ValidationError::TooManyFnDeclarations);
+        }
 
-        // if self.code_section.count() > self.fn_section.count() {
-        //     return Err(ValidationError::TooManyFnBodies);
-        // }
+        if self.code_section.count() > self.fn_section.count() {
+            return Err(ValidationError::TooManyFnBodies);
+        }
 
         self.type_section.validate()?;
         // self.code_section.validate()?;
