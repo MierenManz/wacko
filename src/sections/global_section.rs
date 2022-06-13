@@ -66,3 +66,17 @@ impl Default for GlobalSection {
         Self::new()
     }
 }
+
+impl std::ops::Add for GlobalSection {
+    type Output = Self;
+
+    fn add(self, rhs: Self) -> Self::Output {
+        let mut descriptors = Vec::with_capacity(self.descriptors.len() + rhs.descriptors.len());
+        descriptors.extend(self.descriptors);
+        descriptors.extend(rhs.descriptors);
+
+        Self {
+            descriptors
+        }
+    }
+}

@@ -87,3 +87,17 @@ impl Default for ExportSection {
         Self::new()
     }
 }
+
+impl std::ops::Add for ExportSection {
+    type Output = Self;
+
+    fn add(self, rhs: Self) -> Self::Output {
+        let mut exports = Vec::with_capacity(self.exports.len() + rhs.exports.len());
+        exports.extend(self.exports);
+        exports.extend(rhs.exports);
+
+        Self {
+            exports
+        }
+    }
+}

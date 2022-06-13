@@ -7,36 +7,36 @@ use std::io::Write;
 
 #[derive(Debug)]
 pub struct TypeSection {
-    type_definitions: Vec<(Vec<ValType>, Vec<ValType>)>,
+    definitions: Vec<(Vec<ValType>, Vec<ValType>)>,
 }
 
 impl TypeSection {
     pub fn new() -> Self {
         Self {
-            type_definitions: Vec::new(),
+            definitions: Vec::new(),
         }
     }
 
     pub fn add_type_def<T: Into<Vec<ValType>>>(&mut self, params: T, returns: T) -> usize {
-        self.type_definitions.push((params.into(), returns.into()));
-        self.type_definitions.len() - 1
+        self.definitions.push((params.into(), returns.into()));
+        self.definitions.len() - 1
     }
 
     pub fn remove_type_def(&mut self, index: usize) -> bool {
-        if index < self.type_definitions.len() {
+        if index < self.definitions.len() {
             return false;
         }
 
-        self.type_definitions.remove(index);
+        self.definitions.remove(index);
         true
     }
 
     pub(crate) fn validate(&self) -> Result<(), ValidationError> {
-        if self.type_definitions.len() > u32::MAX as usize {
+        if self.definitions.len() > u32::MAX as usize {
             return Err(ValidationError::ArrayOverflow);
         }
 
-        for (params, returns) in &self.type_definitions {
+        for (params, returns) in &self.definitions {
             if params.len() > u32::MAX as usize || returns.len() > u32::MAX as usize {
                 return Err(ValidationError::ArrayOverflow);
             }
@@ -56,7 +56,7 @@ impl Section for TypeSection {
         written += writer.write(&[self.id()])?;
         written += write::unsigned(writer, self.count() as u64)?;
 
-        for (params, results) in self.type_definitions {
+        for (params, results) in self.definitions {
             written += writer.write(&[ValType::Func.into()])?;
 
             written += write::unsigned(writer, params.len() as u64)?;
@@ -80,12 +80,26 @@ impl Section for TypeSection {
     }
 
     fn count(&self) -> usize {
-        self.type_definitions.len()
+        self.definitions.len()
     }
 }
 
 impl Default for TypeSection {
     fn default() -> Self {
         Self::new()
+    }
+}
+
+impl std::ops::Add for TypeSection {
+    type Output = Self;
+
+    fn add(self, rhs: Self) -> Self::Output {
+        let mut definitions = Vec::with_capacity(self.definitions.len() + rhs.definitions.len());
+        definitions.extend(self.definitions);
+        definitions.extend(rhs.definitions);
+
+        Self {
+            definitions
+        }
     }
 }

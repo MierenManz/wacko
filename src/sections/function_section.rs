@@ -56,3 +56,17 @@ impl Default for FunctionSection {
         Self::new()
     }
 }
+
+impl std::ops::Add for FunctionSection {
+    type Output = Self;
+
+    fn add(self, rhs: Self) -> Self::Output {
+        let mut declarations = Vec::with_capacity(self.declarations.len() + rhs.declarations.len());
+        declarations.extend(self.declarations);
+        declarations.extend(rhs.declarations);
+
+        Self {
+            declarations
+        }
+    }
+}

@@ -68,3 +68,17 @@ impl Default for TableSection {
         Self::new()
     }
 }
+
+impl std::ops::Add for TableSection {
+    type Output = Self;
+
+    fn add(self, rhs: Self) -> Self::Output {
+        let mut descriptors = Vec::with_capacity(self.descriptors.len() + rhs.descriptors.len());
+        descriptors.extend(self.descriptors);
+        descriptors.extend(rhs.descriptors);
+
+        Self {
+            descriptors
+        }
+    }
+}

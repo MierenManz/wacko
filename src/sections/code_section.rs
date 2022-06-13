@@ -46,3 +46,17 @@ impl Default for CodeSection {
         Self::new()
     }
 }
+
+impl std::ops::Add for CodeSection {
+    type Output = Self;
+
+    fn add(self, rhs: Self) -> Self::Output {
+        let mut code_blocks = Vec::with_capacity(self.code_blocks.len() + rhs.code_blocks.len());
+        code_blocks.extend(self.code_blocks);
+        code_blocks.extend(rhs.code_blocks);
+
+        Self {
+            code_blocks
+        }
+    }
+}

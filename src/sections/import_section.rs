@@ -94,3 +94,17 @@ impl Default for ImportSection {
         Self::new()
     }
 }
+
+impl std::ops::Add for ImportSection {
+    type Output = Self;
+
+    fn add(self, rhs: Self) -> Self::Output {
+        let mut imports = Vec::with_capacity(self.imports.len() + rhs.imports.len());
+        imports.extend(self.imports);
+        imports.extend(rhs.imports);
+
+        Self {
+            imports
+        }
+    }
+}
