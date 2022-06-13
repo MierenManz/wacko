@@ -1,6 +1,8 @@
-use crate::Instruction;
-use crate::Section;
 use crate::FnBody;
+use crate::Section;
+use std::io::Write;
+use crate::Error;
+use leb128::write;
 
 pub struct CodeSection {
     code_blocks: Vec<FnBody>,
@@ -18,7 +20,26 @@ impl CodeSection {
     }
 }
 
-// impl Section for CodeSection {}
+impl Section for CodeSection {
+    fn compile(self, writer: &mut impl Write) -> Result<usize, Error> {
+        let mut written = 0;
+        written += writer.write(&[self.id()])?;
+        written += write::unsigned(writer, self.code_blocks.len() as u64)?;
+        for fn_body in self.code_blocks {
+            written += fn_body.compile(writer)?;
+        }
+
+        Ok(written)
+    }
+
+    fn id(&self) -> u8 {
+        0x0A
+    }
+
+    fn count(&self) -> usize {
+        0
+    }
+}
 
 impl Default for CodeSection {
     fn default() -> Self {
