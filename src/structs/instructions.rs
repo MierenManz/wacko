@@ -1,7 +1,6 @@
 use crate::ValType;
-#[repr(u8)]
-#[derive(Copy, Clone)]
 
+#[derive(Copy, Clone)]
 pub enum Instruction {
     /// `Block(return_value)`
     Block(ValType),

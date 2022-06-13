@@ -1,4 +1,3 @@
-#[repr(u8)]
 #[derive(Copy, Clone, Debug, PartialEq)]
 pub enum ValType {
     I32 = 0x7F,
