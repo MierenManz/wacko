@@ -1,10 +1,11 @@
+use crate::Error;
 use crate::Instruction;
 use crate::ValType;
-use crate::Error;
-use std::io::Write;
 use leb128::write;
+use std::io::Write;
 
 pub struct FnBody {
+    /// `Vec<(count, ValType)>`
     locals: Vec<(u32, ValType)>,
     instructions: Vec<Instruction>,
 }
@@ -43,15 +44,21 @@ impl FnBody {
         let mut written = 0;
         let mut buff: Vec<u8> = Vec::with_capacity(self.locals.len() * 2);
 
+        written += write::unsigned(&mut buff, self.locals.len() as u64)?;
+
         for local in self.locals {
-            write::unsigned(&mut buff, local.0 as u64)?;
-            (&mut buff).write(&[local.1.into()])?;
+            written += write::unsigned(&mut buff, local.0 as u64)?;
+            written += (&mut buff).write(&[local.1.into()])?;
+        }
+        written += self.instructions.len();
+        
+        written += write::unsigned(writer, written as u64)?;
+        writer.write_all(&buff)?;
+
+        for x in self.instructions {
+            writer.write(&[x.into()])?;
         }
 
-        for instr in self.instructions {
-            // (&mut buff).write(instr.encode());
-        }
-
-        Ok(0)
+        Ok(written)
     }
 }
