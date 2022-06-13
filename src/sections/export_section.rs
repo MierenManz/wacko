@@ -3,7 +3,6 @@ use crate::Section;
 use leb128::write;
 use std::io::Write;
 
-#[repr(u8)]
 #[derive(Clone, Copy)]
 pub enum ExportKind {
     Function(u32),
