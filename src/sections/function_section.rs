@@ -14,18 +14,8 @@ impl FunctionSection {
             declarations: Vec::new(),
         }
     }
-    pub fn add_fn_decl<T: Into<String>>(&mut self, type_index: u32) -> usize {
+    pub fn add_fn_decl<T: Into<String>>(&mut self, type_index: u32) {
         self.declarations.push(type_index);
-        self.declarations.len() - 1
-    }
-
-    pub fn remove_fn_decl(&mut self, index: usize) -> bool {
-        if self.declarations.len() < index {
-            return false;
-        }
-
-        self.declarations.remove(index);
-        true
     }
 }
 

@@ -33,20 +33,8 @@ impl ExportSection {
         }
     }
 
-    pub fn add_export(&mut self, export_kind: ExportKind, export_name: &str) -> usize {
+    pub fn add_export(&mut self, export_kind: ExportKind, export_name: &str) {
         self.exports.push((export_name.to_string(), export_kind));
-
-        self.exports.len() - 1
-    }
-
-    pub fn remove_export(&mut self, index: usize) -> bool {
-        if self.exports.len() < index {
-            return false;
-        }
-
-        self.exports.remove(index);
-
-        true
     }
 }
 

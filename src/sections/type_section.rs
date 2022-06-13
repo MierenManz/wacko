@@ -17,18 +17,8 @@ impl TypeSection {
         }
     }
 
-    pub fn add_type_def<T: Into<Vec<ValType>>>(&mut self, params: T, returns: T) -> usize {
+    pub fn add_type_def<T: Into<Vec<ValType>>>(&mut self, params: T, returns: T) {
         self.definitions.push((params.into(), returns.into()));
-        self.definitions.len() - 1
-    }
-
-    pub fn remove_type_def(&mut self, index: usize) -> bool {
-        if index < self.definitions.len() {
-            return false;
-        }
-
-        self.definitions.remove(index);
-        true
     }
 
     pub(crate) fn validate(&self) -> Result<(), ValidationError> {

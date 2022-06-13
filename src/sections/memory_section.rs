@@ -16,18 +16,8 @@ impl MemorySection {
         }
     }
 
-    pub fn add_descriptor(&mut self, descriptor: ResizableLimits) -> usize {
+    pub fn add_descriptor(&mut self, descriptor: ResizableLimits) {
         self.descriptors.push(descriptor);
-        self.descriptors.len() - 1
-    }
-
-    pub fn remove_import(&mut self, index: usize) -> bool {
-        if self.descriptors.len() < index {
-            return false;
-        }
-
-        self.descriptors.remove(index);
-        true
     }
 
     pub(crate) fn validate(&self) -> Result<(), ValidationError> {

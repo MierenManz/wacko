@@ -21,19 +21,9 @@ impl ImportSection {
         module_name: T,
         external_name: T,
         kind: ExternalKind,
-    ) -> usize {
+    ) {
         self.imports
             .push((module_name.into(), external_name.into(), kind));
-        self.imports.len() - 1
-    }
-
-    pub fn remove_import(&mut self, index: usize) -> bool {
-        if self.imports.len() < index {
-            return false;
-        }
-
-        self.imports.remove(index);
-        true
     }
 
     pub(crate) fn validate(&self) -> Result<(), ValidationError> {
