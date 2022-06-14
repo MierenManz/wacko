@@ -12,10 +12,7 @@ pub struct FnBody {
 }
 
 impl FnBody {
-    pub fn new<T: Into<String>>(
-        arguments: Vec<ValType>,
-        return_type: Vec<ValType>,
-    ) -> Self {
+    pub fn new<T: Into<String>>(arguments: Vec<ValType>, return_type: Vec<ValType>) -> Self {
         Self {
             fn_type: (arguments, return_type),
             locals: Vec::new(),
