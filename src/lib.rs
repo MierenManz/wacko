@@ -6,7 +6,7 @@ mod structs;
 pub use errors::*;
 pub use module::Module;
 pub use section::Section;
-pub use sections::*;
+pub(crate) use sections::*;
 pub use structs::ExternalKind;
 pub use structs::FnBody;
 pub use structs::GlobalDescriptor;
