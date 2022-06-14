@@ -41,7 +41,6 @@ impl ImportSection {
                     descriptor.validate()?;
                 }
                 ExternalKind::Global(descriptor) => {
-                    descriptor.validate()?;
                     if descriptor.is_mut() {
                         return Err(ValidationError::MutatableImport);
                     }

@@ -162,10 +162,6 @@ impl Module {
             self.memory_section.validate()?;
         }
 
-        if self.global_section.count() > 0 {
-            self.global_section.validate()?;
-        }
-
         self.type_section.validate()?;
         Ok(())
     }

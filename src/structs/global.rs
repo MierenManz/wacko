@@ -1,30 +1,58 @@
 use crate::Error;
-use crate::ValType;
-use crate::ValidationError;
 use std::io::Write;
+use leb128::write;
+
+#[derive(Copy, Clone)]
+pub enum GlobalValue {
+    I32(i32),
+    I64(i64),
+    F32(f32),
+    F64(f64)
+}
+
+impl GlobalValue {
+    pub fn encode(self, writer: &mut impl Write) -> Result<usize, Error> {
+        let mut written = 0;
+        written += writer.write(&[self.into()])?;
+        written += match self {
+            GlobalValue::I32(v) => write::signed(writer, v as i64)?,
+            GlobalValue::I64(v) => write::signed(writer, v as i64)?,
+            GlobalValue::F32(v) => writer.write(&v.to_le_bytes())?,
+            GlobalValue::F64(v) => writer.write(&v.to_le_bytes())?,
+        };
+
+        Ok(written)
+    }
+}
+
+impl From<GlobalValue> for u8 {
+    fn from(other: GlobalValue) -> Self {
+        match other  {
+            GlobalValue::I32(_) => 0x7F,
+            GlobalValue::I64(_) => 0x7E,
+            GlobalValue::F32(_) => 0x7D,
+            GlobalValue::F64(_) => 0x7C,
+        }
+    }
+}
 
 #[derive(Copy, Clone)]
 pub struct GlobalDescriptor {
-    valtype: ValType,
+    valtype: GlobalValue,
     mutable: bool,
 }
 
 impl GlobalDescriptor {
-    pub fn new(valtype: ValType, mutable: bool) -> Self {
+    pub fn new(valtype: GlobalValue, mutable: bool) -> Self {
         Self { valtype, mutable }
     }
 
     pub(crate) fn encode(self, writer: &mut impl Write) -> Result<usize, Error> {
-        let written = writer.write(&[self.valtype.into(), self.mutable as u8])?;
+        let mut written = self.valtype.encode(writer)?;
+        written += writer.write(&[self.mutable as u8])?;
         Ok(written)
     }
 
-    pub(crate) fn validate(&self) -> Result<(), ValidationError> {
-        match self.valtype {
-            ValType::Func | ValType::FuncRef | ValType::Void => Err(ValidationError::InvalidType),
-            _ => Ok(()),
-        }
-    }
     pub(crate) fn is_mut(&self) -> bool {
         self.mutable
     }

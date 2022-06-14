@@ -1,7 +1,6 @@
 use crate::Error;
 use crate::GlobalDescriptor;
 use crate::Section;
-use crate::ValidationError;
 use leb128::write;
 use std::io::Write;
 
@@ -19,18 +18,6 @@ impl GlobalSection {
     pub fn add_descriptor(&mut self, descriptor: GlobalDescriptor) -> usize {
         self.descriptors.push(descriptor);
         self.descriptors.len() - 1
-    }
-
-    pub fn count(&self) -> usize {
-        self.descriptors.len()
-    }
-
-    pub(crate) fn validate(&self) -> Result<(), ValidationError> {
-        for x in &self.descriptors {
-            x.validate()?;
-        }
-
-        Ok(())
     }
 }
 

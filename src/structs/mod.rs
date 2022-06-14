@@ -7,6 +7,7 @@ mod value_type;
 pub use external_kind::ExternalKind;
 pub use function_body::FnBody;
 pub use global::GlobalDescriptor;
+pub use global::GlobalValue;
 pub use instructions::Instruction;
 pub use memory::ResizableLimits;
 pub use value_type::ValType;
