@@ -1,4 +1,5 @@
 use crate::CodeSection;
+use crate::ElementSection;
 use crate::Error;
 use crate::ExportKind;
 use crate::ExportSection;
@@ -26,6 +27,7 @@ pub struct Module {
     memory_section: MemorySection,
     global_section: GlobalSection,
     export_section: ExportSection,
+    element_section: ElementSection,
 }
 
 impl Module {
@@ -42,6 +44,7 @@ impl Module {
             memory_section: Default::default(),
             global_section: Default::default(),
             export_section: Default::default(),
+            element_section: Default::default(),
         }
     }
 
@@ -98,22 +101,39 @@ impl Module {
     pub fn add_import<T: Into<String>>(&mut self, module: T, external_name: T, kind: ExternalKind) {
         self.import_section.add_import(module, external_name, kind);
         match kind {
-            ExternalKind::Function(type_def) => {self.add_fn_decl(type_def);},
+            ExternalKind::Function(type_def) => {
+                self.add_fn_decl(type_def);
+            }
             ExternalKind::Global(desc) => self.add_global_descriptor(desc, None),
             ExternalKind::Memory(desc) => self.add_memory_descriptor(desc, None),
-            ExternalKind::Table(desc) => self.add_table_descriptor(desc, None),
+            ExternalKind::Table(desc) => {
+                self.add_table_descriptor(desc, None);
+            }
         };
     }
 
-    pub fn add_table_descriptor<'a>(
+    pub(crate) fn add_table_descriptor<'a>(
         &mut self,
         descriptor: ResizableLimits,
         export_name: Option<&'a str>,
-    ) {
+    ) -> usize {
         let table_index = self.table_section.add_descriptor(descriptor) as u32;
         if let Some(name) = export_name {
             self.add_export(ExportKind::Table(table_index), name.into());
         }
+
+        table_index as usize
+    }
+
+    pub fn add_table<'a>(
+        &mut self,
+        table_descriptor: ResizableLimits,
+        element_offset: i32,
+        elements: Vec<u32>,
+        export_name: Option<&'a str>,
+    ) {
+        let table_index = self.add_table_descriptor(table_descriptor, export_name) as u32;
+        self.element_section.add_elements(table_index, element_offset, elements);
     }
 
     pub fn compile(self) -> Result<Vec<u8>, Error> {
