@@ -57,7 +57,8 @@ impl Module {
         self.export_section.add_export(export_kind, export_name);
     }
 
-    pub fn add_function<'a, T: Into<&'a str>>(&mut self, fn_body: FnBody, export_name: Option<T>) {
+    /// Footgun. Needs to be used after `add_import` otherwise this may generate a corrupt binary
+    pub fn add_function<'a>(&mut self, fn_body: FnBody, export_name: Option<&'a str>) -> usize {
         let (params, return_type) = fn_body.get_fn_type();
         let type_id = self.add_type(params, return_type) as u32;
         let fn_index = self.add_fn_decl(type_id) as u32;
@@ -67,27 +68,48 @@ impl Module {
         }
 
         self.code_section.add_fn_body(fn_body);
+
+        fn_index as usize
     }
 
-    pub fn add_global_descriptor<'a, T: Into<&'a str>>(&mut self, descriptor: GlobalDescriptor, export_name: Option<T>) {
+    pub fn add_global_descriptor<'a>(
+        &mut self,
+        descriptor: GlobalDescriptor,
+        export_name: Option<&'a str>,
+    ) {
         let global_index = self.global_section.add_descriptor(descriptor) as u32;
         if let Some(name) = export_name {
             self.add_export(ExportKind::Global(global_index), name.into());
         }
     }
 
-    pub fn add_memory_descriptor<'a, T: Into<&'a str>>(&mut self, descriptor: ResizableLimits, export_name: Option<T>) {
+    pub fn add_memory_descriptor<'a>(
+        &mut self,
+        descriptor: ResizableLimits,
+        export_name: Option<&'a str>,
+    ) {
         let mem_index = self.memory_section.add_descriptor(descriptor) as u32;
         if let Some(name) = export_name {
             self.add_export(ExportKind::Memory(mem_index), name.into());
         }
     }
 
+    /// Footgun. Needs to be used before `add_function` otherwise this may generate a corrupt binary
     pub fn add_import<T: Into<String>>(&mut self, module: T, external_name: T, kind: ExternalKind) {
         self.import_section.add_import(module, external_name, kind);
+        match kind {
+            ExternalKind::Function(type_def) => {self.add_fn_decl(type_def);},
+            ExternalKind::Global(desc) => self.add_global_descriptor(desc, None),
+            ExternalKind::Memory(desc) => self.add_memory_descriptor(desc, None),
+            ExternalKind::Table(desc) => self.add_table_descriptor(desc, None),
+        };
     }
 
-    pub fn add_table_descriptor<'a, T: Into<&'a str>>(&mut self, descriptor: ResizableLimits, export_name: Option<T>) {
+    pub fn add_table_descriptor<'a>(
+        &mut self,
+        descriptor: ResizableLimits,
+        export_name: Option<&'a str>,
+    ) {
         let table_index = self.table_section.add_descriptor(descriptor) as u32;
         if let Some(name) = export_name {
             self.add_export(ExportKind::Table(table_index), name.into());
