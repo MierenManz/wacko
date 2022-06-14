@@ -1,4 +1,5 @@
 use crate::Error;
+use crate::RequiredSection;
 use crate::Section;
 use crate::ValType;
 use crate::ValidationError;
@@ -17,11 +18,25 @@ impl TypeSection {
         }
     }
 
-    pub fn add_type_def<T: Into<Vec<ValType>>>(&mut self, params: T, returns: T) {
-        self.definitions.push((params.into(), returns.into()));
+    pub fn add_type_def<T: Into<Vec<ValType>>>(&mut self, params: T, return_type: T) -> usize {
+        let new_definition = (params.into(), return_type.into());
+        for i in 0..self.definitions.len() {
+            let definition = &self.definitions[i];
+            if definition == &new_definition {
+                return i;
+            }
+        }
+
+        self.definitions.push(new_definition);
+        self.definitions.len() - 1
     }
 
     pub(crate) fn validate(&self) -> Result<(), ValidationError> {
+        if self.definitions.len() == 0 {
+            return Err(ValidationError::SectionMissing(
+                RequiredSection::CodeSection,
+            ));
+        }
         if self.definitions.len() > u32::MAX as usize {
             return Err(ValidationError::ArrayOverflow);
         }
@@ -44,7 +59,7 @@ impl Section for TypeSection {
     fn compile(self, writer: &mut impl Write) -> Result<usize, Error> {
         let mut written = 0;
         written += writer.write(&[self.id()])?;
-        written += write::unsigned(writer, self.count() as u64)?;
+        written += write::unsigned(writer, self.definitions.len() as u64)?;
 
         for (params, results) in self.definitions {
             written += writer.write(&[ValType::Func.into()])?;
@@ -68,28 +83,10 @@ impl Section for TypeSection {
     fn id(&self) -> u8 {
         0x01
     }
-
-    fn count(&self) -> usize {
-        self.definitions.len()
-    }
 }
 
 impl Default for TypeSection {
     fn default() -> Self {
         Self::new()
-    }
-}
-
-impl std::ops::Add for TypeSection {
-    type Output = Self;
-
-    fn add(self, rhs: Self) -> Self::Output {
-        let mut definitions = Vec::with_capacity(self.definitions.len() + rhs.definitions.len());
-        definitions.extend(self.definitions);
-        definitions.extend(rhs.definitions);
-
-        Self {
-            definitions
-        }
     }
 }

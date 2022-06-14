@@ -42,7 +42,7 @@ impl Section for ExportSection {
     fn compile(self, writer: &mut impl Write) -> Result<usize, Error> {
         let mut written = 0;
         written += writer.write(&[self.id()])?;
-        written += write::unsigned(writer, self.count() as u64)?;
+        written += write::unsigned(writer, self.exports.len() as u64)?;
         for (name, kind) in self.exports {
             written += write::unsigned(writer, name.len() as u64)?;
             written += writer.write(name.as_bytes())?;
@@ -64,28 +64,10 @@ impl Section for ExportSection {
     fn id(&self) -> u8 {
         0x07
     }
-
-    fn count(&self) -> usize {
-        self.exports.len()
-    }
 }
 
 impl Default for ExportSection {
     fn default() -> Self {
         Self::new()
-    }
-}
-
-impl std::ops::Add for ExportSection {
-    type Output = Self;
-
-    fn add(self, rhs: Self) -> Self::Output {
-        let mut exports = Vec::with_capacity(self.exports.len() + rhs.exports.len());
-        exports.extend(self.exports);
-        exports.extend(rhs.exports);
-
-        Self {
-            exports
-        }
     }
 }

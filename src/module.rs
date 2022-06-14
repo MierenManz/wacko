@@ -1,27 +1,33 @@
+use crate::CodeSection;
 use crate::Error;
+use crate::ExportKind;
 use crate::ExportSection;
+use crate::ExternalKind;
+use crate::FnBody;
 use crate::FunctionSection;
+use crate::GlobalDescriptor;
 use crate::GlobalSection;
 use crate::ImportSection;
 use crate::MemorySection;
 use crate::RequiredSection;
+use crate::ResizableLimits;
 use crate::Section;
 use crate::TableSection;
 use crate::TypeSection;
+use crate::ValType;
 use crate::ValidationError;
-use crate::CodeSection;
 
 pub struct Module {
     optimize: bool,
     validate: bool,
     type_section: TypeSection,
-    import_section: Option<ImportSection>,
     fn_section: FunctionSection,
-    table_section: Option<TableSection>,
-    memory_section: Option<MemorySection>,
-    global_section: Option<GlobalSection>,
-    export_section: Option<ExportSection>,
     code_section: CodeSection,
+    import_section: ImportSection,
+    table_section: TableSection,
+    memory_section: MemorySection,
+    global_section: GlobalSection,
+    export_section: ExportSection,
 }
 
 impl Module {
@@ -29,43 +35,56 @@ impl Module {
         Self {
             optimize,
             validate,
-            type_section: TypeSection::default(),
-            import_section: None,
-            fn_section: FunctionSection::default(),
-            table_section: None,
-            memory_section: None,
-            global_section: None,
-            export_section: None,
-            code_section: CodeSection::default()
+            type_section: Default::default(),
+            fn_section: Default::default(),
+            code_section: Default::default(),
+            // All of these are optional technically
+            import_section: Default::default(),
+            table_section: Default::default(),
+            memory_section: Default::default(),
+            global_section: Default::default(),
+            export_section: Default::default(),
         }
     }
 
-    pub fn set_type_section(&mut self, section: TypeSection) {
-        self.type_section = section;
+    pub(crate) fn add_type<T: Into<Vec<ValType>>>(&mut self, params: T, return_type: T) -> usize {
+        self.type_section.add_type_def(params, return_type)
     }
 
-    pub fn set_import_section(&mut self, section: ImportSection) {
-        self.import_section = Some(section);
+    pub(crate) fn add_fn_decl(&mut self, type_def: u32) -> usize {
+        self.fn_section.add_fn_decl(type_def)
     }
 
-    pub fn set_fn_section(&mut self, section: FunctionSection) {
-        self.fn_section = section;
+    pub(crate) fn add_export(&mut self, export_kind: ExportKind, export_name: &str) {
+        self.export_section.add_export(export_kind, export_name);
     }
 
-    pub fn set_table_section(&mut self, section: TableSection) {
-        self.table_section = Some(section);
+    pub fn add_function(&mut self, fn_body: FnBody) {
+        let (params, return_type) = fn_body.get_fn_type();
+        let type_id = self.add_type(params, return_type) as u32;
+        let fn_index = self.add_fn_decl(type_id) as u32;
+
+        if let Some(export_name) = fn_body.export_name() {
+            self.add_export(ExportKind::Function(fn_index), export_name);
+        }
+
+        self.code_section.add_fn_body(fn_body);
     }
 
-    pub fn set_memory_section(&mut self, section: MemorySection) {
-        self.memory_section = Some(section);
+    pub fn add_global(&mut self, descriptor: GlobalDescriptor) {
+        self.global_section.add_descriptor(descriptor);
     }
 
-    pub fn set_global_section(&mut self, section: GlobalSection) {
-        self.global_section = Some(section);
+    pub fn add_memory_descriptor(&mut self, descriptor: ResizableLimits) {
+        self.memory_section.add_descriptor(descriptor);
     }
 
-    pub fn set_export_section(&mut self, section: ExportSection) {
-        self.export_section = Some(section);
+    pub fn add_import<T: Into<String>>(&mut self, module: T, external_name: T, kind: ExternalKind) {
+        self.import_section.add_import(module, external_name, kind);
+    }
+
+    pub fn add_table(&mut self, descriptor: ResizableLimits) {
+        self.table_section.add_descriptor(descriptor);
     }
 
     pub fn compile(self) -> Result<Vec<u8>, Error> {
@@ -82,47 +101,23 @@ impl Module {
 
     fn optimize(&self) {}
     fn validate(&self) -> Result<(), ValidationError> {
-        if self.type_section.count() == 0 {
-            return Err(ValidationError::SectionMissing(
-                RequiredSection::TypeSection,
-            ));
+        if self.import_section.count() > 0 {
+            self.import_section.validate()?;
         }
 
-        if self.fn_section.count() == 0 {
-            return Err(ValidationError::SectionMissing(
-                RequiredSection::FunctionSection,
-            ));
+        if self.table_section.count() > 0 {
+            self.table_section.validate()?;
         }
 
-        if self.code_section.count() == 0 {
-            return Err(ValidationError::SectionMissing(RequiredSection::CodeSection))
+        if self.memory_section.count() > 0 {
+            self.memory_section.validate()?;
         }
 
-        if self.code_section.count() < self.fn_section.count() {
-            return Err(ValidationError::TooManyFnDeclarations);
-        }
-
-        if self.code_section.count() > self.fn_section.count() {
-            return Err(ValidationError::TooManyFnBodies);
+        if self.global_section.count() > 0 {
+            self.global_section.validate()?;
         }
 
         self.type_section.validate()?;
-        // self.code_section.validate()?;
-
-        if let Some(section) = &self.import_section {
-            section.validate()?;
-        }
-
-        if let Some(section) = &self.table_section {
-            section.validate()?;
-        }
-        if let Some(section) = &self.memory_section {
-            section.validate()?;
-        }
-
-        if let Some(section) = &self.global_section {
-            section.validate()?;
-        }
         Ok(())
     }
 }

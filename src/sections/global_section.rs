@@ -20,6 +20,10 @@ impl GlobalSection {
         self.descriptors.push(descriptor);
     }
 
+    pub fn count(&self) -> usize {
+        self.descriptors.len()
+    }
+
     pub(crate) fn validate(&self) -> Result<(), ValidationError> {
         for x in &self.descriptors {
             x.validate()?;
@@ -33,7 +37,7 @@ impl Section for GlobalSection {
     fn compile(self, writer: &mut impl Write) -> Result<usize, Error> {
         let mut written = 0;
         written += writer.write(&[self.id()])?;
-        written += write::unsigned(writer, self.count() as u64)?;
+        written += write::unsigned(writer, self.descriptors.len() as u64)?;
 
         for x in self.descriptors {
             written += x.encode(writer)?;
@@ -45,28 +49,10 @@ impl Section for GlobalSection {
     fn id(&self) -> u8 {
         0x06
     }
-
-    fn count(&self) -> usize {
-        self.descriptors.len()
-    }
 }
 
 impl Default for GlobalSection {
     fn default() -> Self {
         Self::new()
-    }
-}
-
-impl std::ops::Add for GlobalSection {
-    type Output = Self;
-
-    fn add(self, rhs: Self) -> Self::Output {
-        let mut descriptors = Vec::with_capacity(self.descriptors.len() + rhs.descriptors.len());
-        descriptors.extend(self.descriptors);
-        descriptors.extend(rhs.descriptors);
-
-        Self {
-            descriptors
-        }
     }
 }

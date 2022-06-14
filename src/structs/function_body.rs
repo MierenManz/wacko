@@ -5,16 +5,24 @@ use leb128::write;
 use std::io::Write;
 
 pub struct FnBody {
+    fn_type: (Vec<ValType>, Vec<ValType>),
     /// `Vec<(count, ValType)>`
     locals: Vec<(u32, ValType)>,
     instructions: Vec<Instruction>,
+    export_name: Option<String>,
 }
 
 impl FnBody {
-    pub fn new() -> Self {
+    pub fn new<T: Into<String>>(
+        arguments: Vec<ValType>,
+        return_type: Vec<ValType>,
+        export_name: Option<T>,
+    ) -> Self {
         Self {
+            fn_type: (arguments, return_type),
             locals: Vec::new(),
             instructions: Vec::new(),
+            export_name: export_name.and_then(|x| Some(x.into())),
         }
     }
 
@@ -40,7 +48,15 @@ impl FnBody {
         self.instructions.extend(instructions)
     }
 
-    pub fn compile(self, writer: &mut impl Write) -> Result<usize, Error> {
+    pub(crate) fn get_fn_type(&self) -> (&[ValType], &[ValType]) {
+        (&self.fn_type.0, &self.fn_type.1)
+    }
+
+    pub(crate) fn export_name(&self) -> &Option<String> {
+        &self.export_name
+    }
+
+    pub(crate) fn compile(self, writer: &mut impl Write) -> Result<usize, Error> {
         let mut written = 0;
         let mut buff: Vec<u8> = Vec::with_capacity(self.locals.len() * 2);
 
@@ -51,7 +67,7 @@ impl FnBody {
             written += (&mut buff).write(&[local.1.into()])?;
         }
         written += self.instructions.len();
-        
+
         written += write::unsigned(writer, written as u64)?;
         writer.write_all(&buff)?;
 

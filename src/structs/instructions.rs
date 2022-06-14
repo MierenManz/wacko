@@ -136,7 +136,7 @@ pub enum Instruction {
     I64GeS,
     I32GeU,
     I64GeU,
-    
+
     F32Eq,
     F64Eq,
     F32Ne,
@@ -275,7 +275,7 @@ impl From<Instruction> for u8 {
             Instruction::F32Gt => 0x5E,
             Instruction::F64Gt => 0x64,
             Instruction::F32Ge => 0x60,
-            Instruction::F64Ge => 0x66
+            Instruction::F64Ge => 0x66,
         }
     }
 }

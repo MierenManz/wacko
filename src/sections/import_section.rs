@@ -26,6 +26,10 @@ impl ImportSection {
             .push((module_name.into(), external_name.into(), kind));
     }
 
+    pub fn count(&self) -> usize {
+        self.imports.len()
+    }
+
     pub(crate) fn validate(&self) -> Result<(), ValidationError> {
         if self.imports.len() > u32::MAX as usize {
             return Err(ValidationError::ArrayOverflow);
@@ -54,7 +58,7 @@ impl Section for ImportSection {
     fn compile(self, writer: &mut impl Write) -> Result<usize, Error> {
         let mut written = 0;
         written += writer.write(&[self.id()])?;
-        written += write::unsigned(writer, self.count() as u64)?;
+        written += write::unsigned(writer, self.imports.len() as u64)?;
 
         for (module_name, external_name, kind) in self.imports {
             written += write::unsigned(writer, module_name.len() as u64)?;
@@ -73,28 +77,10 @@ impl Section for ImportSection {
     fn id(&self) -> u8 {
         0x02
     }
-
-    fn count(&self) -> usize {
-        self.imports.len()
-    }
 }
 
 impl Default for ImportSection {
     fn default() -> Self {
         Self::new()
-    }
-}
-
-impl std::ops::Add for ImportSection {
-    type Output = Self;
-
-    fn add(self, rhs: Self) -> Self::Output {
-        let mut imports = Vec::with_capacity(self.imports.len() + rhs.imports.len());
-        imports.extend(self.imports);
-        imports.extend(rhs.imports);
-
-        Self {
-            imports
-        }
     }
 }
