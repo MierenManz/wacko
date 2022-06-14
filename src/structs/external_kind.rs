@@ -47,3 +47,42 @@ impl From<ExternalKind> for u8 {
         }
     }
 }
+
+#[cfg(test)]
+mod test {
+    use crate::*;
+    #[test]
+    fn encode_external_kind() {
+        let mut buff = Vec::new();
+        ExternalKind::Function(0).encode(&mut buff).unwrap();
+        assert_eq!(buff, vec![0x00, 0x00]);
+        buff = Vec::new();
+        
+        ExternalKind::Function(1).encode(&mut buff).unwrap();
+        assert_eq!(buff, vec![0x00, 0x01]);
+        buff = Vec::new();
+
+        ExternalKind::Table(ResizableLimits { minimum: 1, maximum: None }).encode(&mut buff).unwrap();
+        assert_eq!(buff, vec![0x01, 0x70, 0x00, 0x01]);
+        buff = Vec::new();
+
+        ExternalKind::Table(ResizableLimits { minimum: 1, maximum: Some(1) }).encode(&mut buff).unwrap();
+        assert_eq!(buff, vec![0x01, 0x70, 0x01, 0x01, 0x01]);
+        buff = Vec::new();
+
+        ExternalKind::Memory(ResizableLimits { minimum: 1, maximum: None }).encode(&mut buff).unwrap();
+        assert_eq!(buff, vec![0x02, 0x00, 0x01]);
+        buff = Vec::new();
+
+        ExternalKind::Memory(ResizableLimits { minimum: 1, maximum: Some(1) }).encode(&mut buff).unwrap();
+        assert_eq!(buff, vec![0x02, 0x01, 0x01, 0x01]);
+        buff = Vec::new();
+
+        ExternalKind::Global(GlobalDescriptor::new(GlobalValue::I32(0), false)).encode(&mut buff).unwrap();
+        assert_eq!(buff, vec![0x03, 0x7F, 0x00, 0x00]);
+        buff = Vec::new();
+
+        ExternalKind::Global(GlobalDescriptor::new(GlobalValue::I32(0), true)).encode(&mut buff).unwrap();
+        assert_eq!(buff, vec![0x03, 0x7F, 0x00, 0x01]);
+    }
+}
