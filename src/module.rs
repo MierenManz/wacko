@@ -133,7 +133,8 @@ impl Module {
         export_name: Option<&'a str>,
     ) {
         let table_index = self.add_table_descriptor(table_descriptor, export_name) as u32;
-        self.element_section.add_elements(table_index, element_offset, elements);
+        self.element_section
+            .add_elements(table_index, element_offset, elements);
     }
 
     pub fn compile(self) -> Result<Vec<u8>, Error> {

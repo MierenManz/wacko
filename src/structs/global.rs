@@ -1,13 +1,13 @@
 use crate::Error;
-use std::io::Write;
 use leb128::write;
+use std::io::Write;
 
 #[derive(Copy, Clone)]
 pub enum GlobalValue {
     I32(i32),
     I64(i64),
     F32(f32),
-    F64(f64)
+    F64(f64),
 }
 
 impl GlobalValue {
@@ -27,7 +27,7 @@ impl GlobalValue {
 
 impl From<GlobalValue> for u8 {
     fn from(other: GlobalValue) -> Self {
-        match other  {
+        match other {
             GlobalValue::I32(_) => 0x7F,
             GlobalValue::I64(_) => 0x7E,
             GlobalValue::F32(_) => 0x7D,

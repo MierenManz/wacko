@@ -1,9 +1,9 @@
 use crate::Error;
+use crate::Instruction;
 use crate::Section;
+use leb128::write;
 use std::collections::HashMap;
 use std::io::Write;
-use leb128::write;
-use crate::Instruction;
 
 pub struct ElementSection {
     /// `HashMap<table_index, (offset, Vec<function_id>)>`
@@ -23,7 +23,8 @@ impl ElementSection {
             elems.extend(elements);
             self.table_elements.insert(table, (offset, elems));
         } else {
-            self.table_elements.insert(table, (element_offset, elements));
+            self.table_elements
+                .insert(table, (element_offset, elements));
         }
     }
 }
