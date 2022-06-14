@@ -9,20 +9,17 @@ pub struct FnBody {
     /// `Vec<(count, ValType)>`
     locals: Vec<(u32, ValType)>,
     instructions: Vec<Instruction>,
-    export_name: Option<String>,
 }
 
 impl FnBody {
     pub fn new<T: Into<String>>(
         arguments: Vec<ValType>,
         return_type: Vec<ValType>,
-        export_name: Option<T>,
     ) -> Self {
         Self {
             fn_type: (arguments, return_type),
             locals: Vec::new(),
             instructions: Vec::new(),
-            export_name: export_name.and_then(|x| Some(x.into())),
         }
     }
 
@@ -50,10 +47,6 @@ impl FnBody {
 
     pub(crate) fn get_fn_type(&self) -> (&[ValType], &[ValType]) {
         (&self.fn_type.0, &self.fn_type.1)
-    }
-
-    pub(crate) fn export_name(&self) -> &Option<String> {
-        &self.export_name
     }
 
     pub(crate) fn compile(self, writer: &mut impl Write) -> Result<usize, Error> {

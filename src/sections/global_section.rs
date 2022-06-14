@@ -16,8 +16,9 @@ impl GlobalSection {
         }
     }
 
-    pub fn add_descriptor(&mut self, descriptor: GlobalDescriptor) {
+    pub fn add_descriptor(&mut self, descriptor: GlobalDescriptor) -> usize {
         self.descriptors.push(descriptor);
+        self.descriptors.len() - 1
     }
 
     pub fn count(&self) -> usize {

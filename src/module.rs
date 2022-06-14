@@ -9,9 +9,7 @@ use crate::GlobalDescriptor;
 use crate::GlobalSection;
 use crate::ImportSection;
 use crate::MemorySection;
-use crate::RequiredSection;
 use crate::ResizableLimits;
-use crate::Section;
 use crate::TableSection;
 use crate::TypeSection;
 use crate::ValType;
@@ -59,32 +57,41 @@ impl Module {
         self.export_section.add_export(export_kind, export_name);
     }
 
-    pub fn add_function(&mut self, fn_body: FnBody) {
+    pub fn add_function<'a, T: Into<&'a str>>(&mut self, fn_body: FnBody, export_name: Option<T>) {
         let (params, return_type) = fn_body.get_fn_type();
         let type_id = self.add_type(params, return_type) as u32;
         let fn_index = self.add_fn_decl(type_id) as u32;
 
-        if let Some(export_name) = fn_body.export_name() {
-            self.add_export(ExportKind::Function(fn_index), export_name);
+        if let Some(name) = export_name {
+            self.add_export(ExportKind::Function(fn_index), name.into());
         }
 
         self.code_section.add_fn_body(fn_body);
     }
 
-    pub fn add_global(&mut self, descriptor: GlobalDescriptor) {
-        self.global_section.add_descriptor(descriptor);
+    pub fn add_global_descriptor<'a, T: Into<&'a str>>(&mut self, descriptor: GlobalDescriptor, export_name: Option<T>) {
+        let global_index = self.global_section.add_descriptor(descriptor) as u32;
+        if let Some(name) = export_name {
+            self.add_export(ExportKind::Global(global_index), name.into());
+        }
     }
 
-    pub fn add_memory_descriptor(&mut self, descriptor: ResizableLimits) {
-        self.memory_section.add_descriptor(descriptor);
+    pub fn add_memory_descriptor<'a, T: Into<&'a str>>(&mut self, descriptor: ResizableLimits, export_name: Option<T>) {
+        let mem_index = self.memory_section.add_descriptor(descriptor) as u32;
+        if let Some(name) = export_name {
+            self.add_export(ExportKind::Memory(mem_index), name.into());
+        }
     }
 
     pub fn add_import<T: Into<String>>(&mut self, module: T, external_name: T, kind: ExternalKind) {
         self.import_section.add_import(module, external_name, kind);
     }
 
-    pub fn add_table(&mut self, descriptor: ResizableLimits) {
-        self.table_section.add_descriptor(descriptor);
+    pub fn add_table_descriptor<'a, T: Into<&'a str>>(&mut self, descriptor: ResizableLimits, export_name: Option<T>) {
+        let table_index = self.table_section.add_descriptor(descriptor) as u32;
+        if let Some(name) = export_name {
+            self.add_export(ExportKind::Table(table_index), name.into());
+        }
     }
 
     pub fn compile(self) -> Result<Vec<u8>, Error> {

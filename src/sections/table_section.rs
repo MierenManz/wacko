@@ -17,8 +17,9 @@ impl TableSection {
         }
     }
 
-    pub fn add_descriptor(&mut self, descriptor: ResizableLimits) {
+    pub fn add_descriptor(&mut self, descriptor: ResizableLimits) -> usize {
         self.descriptors.push(descriptor);
+        self.descriptors.len() - 1
     }
 
     pub fn count(&self) -> usize {
