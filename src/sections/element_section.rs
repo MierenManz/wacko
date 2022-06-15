@@ -1,6 +1,5 @@
 use crate::Error;
 use crate::Instruction;
-use crate::Section;
 use leb128::write;
 use std::collections::HashMap;
 use std::io::Write;
@@ -27,12 +26,10 @@ impl ElementSection {
                 .insert(table, (element_offset, elements));
         }
     }
-}
 
-impl Section for ElementSection {
-    fn compile(self, writer: &mut impl Write) -> Result<usize, Error> {
+    pub fn compile(self, writer: &mut impl Write) -> Result<usize, Error> {
         let mut written = 0;
-        written += writer.write(&[self.id()])?;
+        written += writer.write(&[Self::id()])?;
         written += write::unsigned(writer, self.table_elements.len() as u64)?;
         for (table_idx, (offset, elements)) in self.table_elements {
             written += write::unsigned(writer, table_idx as u64)?;
@@ -45,7 +42,7 @@ impl Section for ElementSection {
 
         Ok(written)
     }
-    fn id(&self) -> u8 {
+    fn id() -> u8 {
         0x09
     }
 }

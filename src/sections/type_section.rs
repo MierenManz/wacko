@@ -1,6 +1,5 @@
 use crate::Error;
 use crate::RequiredSection;
-use crate::Section;
 use crate::ValType;
 use crate::ValidationError;
 use leb128::write;
@@ -53,12 +52,10 @@ impl TypeSection {
 
         Ok(())
     }
-}
 
-impl Section for TypeSection {
-    fn compile(self, writer: &mut impl Write) -> Result<usize, Error> {
+    pub fn compile(self, writer: &mut impl Write) -> Result<usize, Error> {
         let mut written = 0;
-        written += writer.write(&[self.id()])?;
+        written += writer.write(&[Self::id()])?;
         written += write::unsigned(writer, self.definitions.len() as u64)?;
 
         for (params, results) in self.definitions {
@@ -80,7 +77,7 @@ impl Section for TypeSection {
         Ok(written)
     }
 
-    fn id(&self) -> u8 {
+    fn id() -> u8 {
         0x01
     }
 }

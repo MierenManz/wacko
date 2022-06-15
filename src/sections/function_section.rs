@@ -1,5 +1,4 @@
 use crate::Error;
-use crate::Section;
 use leb128::write;
 use std::io::Write;
 
@@ -19,12 +18,10 @@ impl FunctionSection {
         self.declarations.push(type_index);
         self.declarations.len() - 1
     }
-}
 
-impl Section for FunctionSection {
-    fn compile(self, writer: &mut impl Write) -> Result<usize, Error> {
+    pub fn compile(self, writer: &mut impl Write) -> Result<usize, Error> {
         let mut written = 0;
-        written += writer.write(&[self.id()])?;
+        written += writer.write(&[Self::id()])?;
         written += write::unsigned(writer, self.declarations.len() as u64)?;
         for x in self.declarations {
             written += write::unsigned(writer, x as u64)?;
@@ -34,7 +31,7 @@ impl Section for FunctionSection {
         Ok(written)
     }
 
-    fn id(&self) -> u8 {
+    fn id() -> u8 {
         0x03
     }
 }

@@ -15,6 +15,7 @@ use crate::TableSection;
 use crate::TypeSection;
 use crate::ValType;
 use crate::ValidationError;
+use std::io::Write;
 
 pub struct Module {
     optimize: bool,
@@ -159,7 +160,14 @@ impl Module {
         Ok(())
     }
 
-    pub fn compile(mut self) -> Result<Vec<u8>, Error> {
+    pub fn compile(self) -> Result<Vec<u8>, Error> {
+        let mut buff = Vec::new();
+        self.compile_stream(&mut buff)?;
+
+        Ok(buff)
+    }
+
+    pub fn compile_stream(mut self, writer: &mut impl Write) -> Result<usize, Error> {
         if self.optimize {
             self.optimize();
         }
@@ -168,7 +176,16 @@ impl Module {
             self.validate()?;
         }
 
-        Ok(Vec::new())
+        let mut written = self.type_section.compile(writer)?;
+        written += self.import_section.compile(writer)?;
+        written += self.fn_section.compile(writer)?;
+        written += self.table_section.compile(writer)?;
+        written += self.memory_section.compile(writer)?;
+        written += self.global_section.compile(writer)?;
+        written += self.export_section.compile(writer)?;
+        written += self.element_section.compile(writer)?;
+        written += self.code_section.compile(writer)?;
+        Ok(written)
     }
 
     fn optimize(&mut self) {

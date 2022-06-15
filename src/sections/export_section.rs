@@ -1,5 +1,4 @@
 use crate::Error;
-use crate::Section;
 use crate::ValidationError;
 use leb128::write;
 use std::io::Write;
@@ -48,12 +47,10 @@ impl ExportSection {
 
         Ok(())
     }
-}
 
-impl Section for ExportSection {
-    fn compile(self, writer: &mut impl Write) -> Result<usize, Error> {
+    pub fn compile(self, writer: &mut impl Write) -> Result<usize, Error> {
         let mut written = 0;
-        written += writer.write(&[self.id()])?;
+        written += writer.write(&[Self::id()])?;
         written += write::unsigned(writer, self.exports.len() as u64)?;
         for (name, kind) in self.exports {
             written += write::unsigned(writer, name.len() as u64)?;
@@ -73,7 +70,7 @@ impl Section for ExportSection {
         Ok(written)
     }
 
-    fn id(&self) -> u8 {
+    fn id() -> u8 {
         0x07
     }
 }

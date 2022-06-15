@@ -1,6 +1,5 @@
 use crate::Error;
 use crate::ExternalKind;
-use crate::Section;
 use crate::ValidationError;
 use leb128::write;
 use std::io::Write;
@@ -59,12 +58,10 @@ impl ImportSection {
 
         Ok(())
     }
-}
 
-impl Section for ImportSection {
-    fn compile(self, writer: &mut impl Write) -> Result<usize, Error> {
+    pub fn compile(self, writer: &mut impl Write) -> Result<usize, Error> {
         let mut written = 0;
-        written += writer.write(&[self.id()])?;
+        written += writer.write(&[Self::id()])?;
         written += write::unsigned(writer, self.imports.len() as u64)?;
 
         for (module_name, external_name, kind) in self.imports {
@@ -81,7 +78,7 @@ impl Section for ImportSection {
         Ok(written)
     }
 
-    fn id(&self) -> u8 {
+    fn id() -> u8 {
         0x02
     }
 }

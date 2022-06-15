@@ -1,6 +1,5 @@
 use crate::Error;
 use crate::GlobalDescriptor;
-use crate::Section;
 use leb128::write;
 use std::io::Write;
 
@@ -19,12 +18,10 @@ impl GlobalSection {
         self.descriptors.push(descriptor);
         self.descriptors.len() - 1
     }
-}
 
-impl Section for GlobalSection {
-    fn compile(self, writer: &mut impl Write) -> Result<usize, Error> {
+    pub fn compile(self, writer: &mut impl Write) -> Result<usize, Error> {
         let mut written = 0;
-        written += writer.write(&[self.id()])?;
+        written += writer.write(&[Self::id()])?;
         written += write::unsigned(writer, self.descriptors.len() as u64)?;
 
         for x in self.descriptors {
@@ -34,7 +31,7 @@ impl Section for GlobalSection {
         Ok(written)
     }
 
-    fn id(&self) -> u8 {
+    fn id() -> u8 {
         0x06
     }
 }

@@ -1,6 +1,5 @@
 use crate::Error;
 use crate::FnBody;
-use crate::Section;
 use crate::ValidationError;
 use leb128::write;
 use std::io::Write;
@@ -24,12 +23,10 @@ impl CodeSection {
     pub fn validate(&self) -> Result<(), ValidationError> {
         Ok(())
     }
-}
 
-impl Section for CodeSection {
-    fn compile(self, writer: &mut impl Write) -> Result<usize, Error> {
+    pub fn compile(self, writer: &mut impl Write) -> Result<usize, Error> {
         let mut written = 0;
-        written += writer.write(&[self.id()])?;
+        written += writer.write(&[Self::id()])?;
         written += write::unsigned(writer, self.code_blocks.len() as u64)?;
         for fn_body in self.code_blocks {
             written += fn_body.compile(writer)?;
@@ -38,7 +35,7 @@ impl Section for CodeSection {
         Ok(written)
     }
 
-    fn id(&self) -> u8 {
+    fn id() -> u8 {
         0x0A
     }
 }

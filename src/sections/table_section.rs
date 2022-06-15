@@ -1,6 +1,5 @@
 use crate::Error;
 use crate::ResizableLimits;
-use crate::Section;
 use crate::ValType;
 use crate::ValidationError;
 use leb128::write;
@@ -26,18 +25,16 @@ impl TableSection {
         self.descriptors.len()
     }
 
-    pub(crate) fn validate(&self) -> Result<(), ValidationError> {
+    pub fn validate(&self) -> Result<(), ValidationError> {
         for x in &self.descriptors {
             x.validate()?;
         }
         Ok(())
     }
-}
 
-impl Section for TableSection {
-    fn compile(self, writer: &mut impl Write) -> Result<usize, Error> {
+    pub fn compile(self, writer: &mut impl Write) -> Result<usize, Error> {
         let mut written = 0;
-        written += writer.write(&[self.id()])?;
+        written += writer.write(&[Self::id()])?;
         written += write::unsigned(writer, self.descriptors.len() as u64)?;
 
         for x in self.descriptors {
@@ -49,7 +46,7 @@ impl Section for TableSection {
         Ok(written)
     }
 
-    fn id(&self) -> u8 {
+    fn id() -> u8 {
         0x04
     }
 }
