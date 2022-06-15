@@ -13,8 +13,13 @@ pub struct FnBody {
 
 impl FnBody {
     pub fn new(arguments: Vec<ValType>, return_type: Vec<ValType>) -> Self {
+        let returns = if return_type.len() == 0 {
+            vec![ValType::Void]
+        } else {
+            return_type
+        };
         Self {
-            fn_type: (arguments, return_type),
+            fn_type: (arguments, returns),
             locals: Vec::new(),
             instructions: Vec::new(),
         }
@@ -48,23 +53,39 @@ impl FnBody {
 
     pub(crate) fn compile(self, writer: &mut impl Write) -> Result<usize, Error> {
         let mut written = 0;
-        let mut buff: Vec<u8> = Vec::with_capacity(self.locals.len() * 2);
+        let mut buff = Vec::with_capacity(self.locals.len() * 3 + self.instructions.len());
 
         written += write::unsigned(&mut buff, self.locals.len() as u64)?;
-
         for local in self.locals {
             written += write::unsigned(&mut buff, local.0 as u64)?;
             written += (&mut buff).write(&[local.1.into()])?;
         }
-        written += self.instructions.len();
+
+        for x in self.instructions {
+            written += x.encode(&mut buff)?;
+        }
 
         written += write::unsigned(writer, written as u64)?;
         writer.write_all(&buff)?;
-
-        for x in self.instructions {
-            writer.write(&[x.into()])?;
-        }
-
         Ok(written)
+    }
+}
+
+#[cfg(test)]
+mod test {
+    use crate::*;
+    #[test]
+    fn encode_fn_body() {
+        let mut buff = Vec::new();
+        let args = vec![ValType::I32, ValType::I32];
+        let return_type = vec![ValType::I32];
+        let mut fn_body = FnBody::new(args, return_type);
+        fn_body.add_instructions(vec![
+            Instruction::LocalGet(0),
+            Instruction::LocalGet(1),
+            Instruction::I32Add,
+        ]);
+        fn_body.compile(&mut buff).unwrap();
+        assert_eq!(buff, vec![0x06, 0x00, 0x20, 0x00, 0x20, 0x01, 0x6A]);
     }
 }
