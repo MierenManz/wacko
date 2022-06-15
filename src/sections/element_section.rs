@@ -36,7 +36,7 @@ impl Section for ElementSection {
         written += write::unsigned(writer, self.table_elements.len() as u64)?;
         for (table_idx, (offset, elements)) in self.table_elements {
             written += write::unsigned(writer, table_idx as u64)?;
-            written += writer.write(&[Instruction::I32Const(offset).into()])?;
+            written += writer.write(&[(&Instruction::I32Const(offset)).into()])?;
             written += write::signed(writer, offset as i64)?;
             for idx in elements {
                 written += write::unsigned(writer, idx as u64)?;
