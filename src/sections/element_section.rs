@@ -17,7 +17,7 @@ impl ElementSection {
         }
     }
 
-    pub(crate) fn add_elements(&mut self, table: u32, element_offset: i32, elements: Vec<u32>) {
+    pub fn add_elements(&mut self, table: u32, element_offset: i32, elements: Vec<u32>) {
         if self.table_elements.contains_key(&table) {
             let (offset, mut elems) = self.table_elements.remove(&table).unwrap();
             elems.extend(elements);

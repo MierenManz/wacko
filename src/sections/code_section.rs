@@ -1,6 +1,7 @@
 use crate::Error;
 use crate::FnBody;
 use crate::Section;
+use crate::ValidationError;
 use leb128::write;
 use std::io::Write;
 
@@ -17,6 +18,11 @@ impl CodeSection {
 
     pub fn add_fn_body(&mut self, code_block: FnBody) {
         self.code_blocks.push(code_block);
+    }
+
+    pub fn optimize(&mut self) {}
+    pub fn validate(&self) -> Result<(), ValidationError> {
+        Ok(())
     }
 }
 
