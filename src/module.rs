@@ -159,7 +159,7 @@ impl Module {
         Ok(())
     }
 
-    pub fn compile(self) -> Result<Vec<u8>, Error> {
+    pub fn compile(mut self) -> Result<Vec<u8>, Error> {
         if self.optimize {
             self.optimize();
         }
@@ -171,7 +171,9 @@ impl Module {
         Ok(Vec::new())
     }
 
-    fn optimize(&self) {}
+    fn optimize(&mut self) {
+        self.code_section.optimize();
+    }
     fn validate(&self) -> Result<(), ValidationError> {
         if self.import_section.count() > 0 {
             self.import_section.validate()?;
@@ -186,6 +188,7 @@ impl Module {
         }
 
         self.type_section.validate()?;
+        self.code_section.validate()?;
         Ok(())
     }
 }
