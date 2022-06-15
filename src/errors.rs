@@ -6,14 +6,14 @@ pub enum Error {
     IoError(Box<StdioError>), // OptimizationError(OptimizationError),
 }
 
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug, Clone, Copy, PartialEq)]
 pub enum RequiredSection {
     TypeSection,
     FunctionSection,
     CodeSection,
 }
 
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug, Clone, Copy, PartialEq)]
 pub enum ValidationError {
     InvalidSignature,
     InvalidIndex,
