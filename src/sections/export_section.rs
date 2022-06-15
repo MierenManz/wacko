@@ -1,9 +1,10 @@
 use crate::Error;
 use crate::Section;
+use crate::ValidationError;
 use leb128::write;
 use std::io::Write;
 
-#[derive(Clone, Copy)]
+#[derive(Clone, Copy, PartialEq)]
 pub enum ExportKind {
     Function(u32),
     Table(u32),
@@ -33,8 +34,19 @@ impl ExportSection {
         }
     }
 
-    pub fn add_export(&mut self, export_kind: ExportKind, export_name: &str) {
+    pub fn add_export(
+        &mut self,
+        export_kind: ExportKind,
+        export_name: &str,
+    ) -> Result<(), ValidationError> {
+        for (name, kind) in &self.exports {
+            if *kind == export_kind && *name == export_name {
+                return Err(ValidationError::Duplicate);
+            }
+        }
         self.exports.push((export_name.to_string(), export_kind));
+
+        Ok(())
     }
 }
 

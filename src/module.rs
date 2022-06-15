@@ -56,85 +56,107 @@ impl Module {
         self.fn_section.add_fn_decl(type_def)
     }
 
-    pub(crate) fn add_export(&mut self, export_kind: ExportKind, export_name: &str) {
-        self.export_section.add_export(export_kind, export_name);
+    pub(crate) fn add_export(
+        &mut self,
+        export_kind: ExportKind,
+        export_name: &str,
+    ) -> Result<(), ValidationError> {
+        self.export_section.add_export(export_kind, export_name)
     }
 
     /// Footgun. Needs to be used after `add_import` otherwise this may generate a corrupt binary
-    pub fn add_function<'a>(&mut self, fn_body: FnBody, export_name: Option<&'a str>) -> usize {
+    pub fn add_function(
+        &mut self,
+        fn_body: FnBody,
+        export_name: Option<&'_ str>,
+    ) -> Result<usize, ValidationError> {
         let (params, return_type) = fn_body.get_fn_type();
         let type_id = self.add_type(params, return_type) as u32;
         let fn_index = self.add_fn_decl(type_id) as u32;
 
         if let Some(name) = export_name {
-            self.add_export(ExportKind::Function(fn_index), name.into());
+            self.add_export(ExportKind::Function(fn_index), name)?;
         }
 
         self.code_section.add_fn_body(fn_body);
 
-        fn_index as usize
+        Ok(fn_index as usize)
     }
 
-    pub fn add_global_descriptor<'a>(
+    pub fn add_global_descriptor(
         &mut self,
         descriptor: GlobalDescriptor,
-        export_name: Option<&'a str>,
-    ) {
+        export_name: Option<&'_ str>,
+    ) -> Result<(), ValidationError> {
         let global_index = self.global_section.add_descriptor(descriptor) as u32;
         if let Some(name) = export_name {
-            self.add_export(ExportKind::Global(global_index), name.into());
+            self.add_export(ExportKind::Global(global_index), name)?;
         }
+
+        Ok(())
     }
 
-    pub fn add_memory_descriptor<'a>(
+    pub fn add_memory_descriptor(
         &mut self,
         descriptor: ResizableLimits,
-        export_name: Option<&'a str>,
-    ) {
+        export_name: Option<&'_ str>,
+    ) -> Result<(), ValidationError> {
         let mem_index = self.memory_section.add_descriptor(descriptor) as u32;
         if let Some(name) = export_name {
-            self.add_export(ExportKind::Memory(mem_index), name.into());
+            self.add_export(ExportKind::Memory(mem_index), name)?;
         }
+
+        Ok(())
     }
 
     /// Footgun. Needs to be used before `add_function` otherwise this may generate a corrupt binary
-    pub fn add_import<T: Into<String>>(&mut self, module: T, external_name: T, kind: ExternalKind) {
-        self.import_section.add_import(module, external_name, kind);
+    pub fn add_import<T: Into<String>>(
+        &mut self,
+        module: T,
+        external_name: T,
+        kind: ExternalKind,
+    ) -> Result<(), ValidationError> {
+        self.import_section
+            .add_import(module, external_name, kind)?;
         match kind {
             ExternalKind::Function(type_def) => {
                 self.add_fn_decl(type_def);
             }
-            ExternalKind::Global(desc) => self.add_global_descriptor(desc, None),
-            ExternalKind::Memory(desc) => self.add_memory_descriptor(desc, None),
+            ExternalKind::Global(desc) => self.add_global_descriptor(desc, None).unwrap(),
+            ExternalKind::Memory(desc) => self.add_memory_descriptor(desc, None).unwrap(),
             ExternalKind::Table(desc) => {
-                self.add_table_descriptor(desc, None);
+                self.add_table_descriptor(desc, None).unwrap();
             }
         };
+
+        Ok(())
     }
 
-    pub(crate) fn add_table_descriptor<'a>(
+    pub(crate) fn add_table_descriptor(
         &mut self,
         descriptor: ResizableLimits,
-        export_name: Option<&'a str>,
-    ) -> usize {
+        export_name: Option<&'_ str>,
+    ) -> Result<usize, ValidationError> {
         let table_index = self.table_section.add_descriptor(descriptor) as u32;
         if let Some(name) = export_name {
-            self.add_export(ExportKind::Table(table_index), name.into());
+            self.add_export(ExportKind::Table(table_index), name)?;
         }
 
-        table_index as usize
+        Ok(table_index as usize)
     }
 
-    pub fn add_table<'a>(
+    pub fn add_table(
         &mut self,
         table_descriptor: ResizableLimits,
         element_offset: i32,
         elements: Vec<u32>,
-        export_name: Option<&'a str>,
-    ) {
-        let table_index = self.add_table_descriptor(table_descriptor, export_name) as u32;
+        export_name: Option<&'_ str>,
+    ) -> Result<(), ValidationError> {
+        let table_index = self.add_table_descriptor(table_descriptor, export_name)? as u32;
         self.element_section
             .add_elements(table_index, element_offset, elements);
+
+        Ok(())
     }
 
     pub fn compile(self) -> Result<Vec<u8>, Error> {

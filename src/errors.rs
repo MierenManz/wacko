@@ -26,6 +26,7 @@ pub enum ValidationError {
     TooManyFnBodies,
     TooManyFnDeclarations,
     MutatableImport,
+    Duplicate,
 }
 
 impl From<ValidationError> for Error {

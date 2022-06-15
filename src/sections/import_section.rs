@@ -20,10 +20,18 @@ impl ImportSection {
         &mut self,
         module_name: T,
         external_name: T,
-        kind: ExternalKind,
-    ) {
-        self.imports
-            .push((module_name.into(), external_name.into(), kind));
+        external_kind: ExternalKind,
+    ) -> Result<(), ValidationError> {
+        let mod_name = module_name.into();
+        let extern_name = external_name.into();
+        for (module, name, kind) in &self.imports {
+            if mod_name == *module && extern_name == *name && external_kind == *kind {
+                return Err(ValidationError::Duplicate);
+            }
+        }
+        self.imports.push((mod_name, extern_name, external_kind));
+
+        Ok(())
     }
 
     pub fn count(&self) -> usize {

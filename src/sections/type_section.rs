@@ -32,7 +32,7 @@ impl TypeSection {
     }
 
     pub(crate) fn validate(&self) -> Result<(), ValidationError> {
-        if self.definitions.len() == 0 {
+        if self.definitions.is_empty() {
             return Err(ValidationError::SectionMissing(
                 RequiredSection::CodeSection,
             ));

@@ -13,7 +13,7 @@ pub struct FnBody {
 
 impl FnBody {
     pub fn new(arguments: Vec<ValType>, return_type: Vec<ValType>) -> Self {
-        let returns = if return_type.len() == 0 {
+        let returns = if return_type.is_empty() {
             vec![ValType::Void]
         } else {
             return_type

@@ -2,7 +2,7 @@ use crate::Error;
 use leb128::write;
 use std::io::Write;
 
-#[derive(Copy, Clone)]
+#[derive(Copy, Clone, PartialEq)]
 pub enum GlobalValue {
     I32(i32),
     I64(i64),
@@ -36,7 +36,7 @@ impl From<GlobalValue> for u8 {
     }
 }
 
-#[derive(Copy, Clone)]
+#[derive(Copy, Clone, PartialEq)]
 pub struct GlobalDescriptor {
     valtype: GlobalValue,
     mutable: bool,

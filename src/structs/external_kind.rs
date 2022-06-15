@@ -5,7 +5,7 @@ use crate::ValType;
 use leb128::write;
 use std::io::Write;
 
-#[derive(Copy, Clone)]
+#[derive(Copy, Clone, PartialEq)]
 pub enum ExternalKind {
     Function(u32),
     Table(ResizableLimits),

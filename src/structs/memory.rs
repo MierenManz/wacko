@@ -3,7 +3,7 @@ use crate::ValidationError;
 use leb128::write;
 use std::io::Write;
 
-#[derive(Copy, Clone)]
+#[derive(Copy, Clone, PartialEq)]
 pub struct ResizableLimits {
     pub minimum: u32,
     pub maximum: Option<u32>,
