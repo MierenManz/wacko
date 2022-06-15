@@ -3,7 +3,7 @@ use crate::ValType;
 use leb128::write;
 use std::io::Write;
 
-#[derive(Clone)]
+#[derive(Clone, PartialEq)]
 pub enum Instruction {
     /// `Block(return_value)`
     Block(ValType),
@@ -232,11 +232,74 @@ pub enum Instruction {
     I64Store8(u32, u32),
     /// `I64Store16(align, offset)`
     I64Store16(u32, u32),
-    /// `I64Store16(align, offset)`
+    /// `I64Store32(align, offset)`
     I64Store32(u32, u32),
 
     MemoryGrow,
     MemorySize,
+}
+
+impl Instruction {
+    pub fn encode(&self, writer: &mut impl Write) -> Result<usize, Error> {
+        let mut written = writer.write(&[self.into()])?;
+        written += match self {
+            Instruction::Block(v) | Instruction::Loop(v) => writer.write(&[(*v).into()])?,
+            Instruction::Br(depth) | Instruction::BrIf(depth) => {
+                write::unsigned(writer, *depth as u64)?
+            }
+            Instruction::BrTable(table, default) => {
+                let mut w = write::unsigned(writer, table.len() as u64)?;
+                for i in 0..table.len() {
+                    let idx = table[i];
+                    w += write::unsigned(writer, idx as u64)?;
+                }
+
+                w + write::unsigned(writer, *default as u64)?
+            }
+            Instruction::If(v) => writer.write(&[(*v).into()])?,
+            Instruction::I32Const(v) => write::signed(writer, *v as i64)?,
+            Instruction::I64Const(v) => write::signed(writer, *v as i64)?,
+            Instruction::F32Const(v) => writer.write(&v.to_le_bytes())?,
+            Instruction::F64Const(v) => writer.write(&v.to_le_bytes())?,
+
+            Instruction::LocalGet(idx)
+            | Instruction::LocalSet(idx)
+            | Instruction::LocalTee(idx)
+            | Instruction::GlobalGet(idx)
+            | Instruction::GlobalSet(idx)
+            | Instruction::Call(idx)
+            | Instruction::CallIndirect(idx) => write::unsigned(writer, *idx as u64)?,
+
+            Instruction::I32Load(align, offset)
+            | Instruction::I64Load(align, offset)
+            | Instruction::F32Load(align, offset)
+            | Instruction::F64Load(align, offset)
+            | Instruction::I32Store(align, offset)
+            | Instruction::I64Store(align, offset)
+            | Instruction::F32Store(align, offset)
+            | Instruction::F64Store(align, offset)
+            | Instruction::I32Load8S(align, offset)
+            | Instruction::I32Load16S(align, offset)
+            | Instruction::I64Load8S(align, offset)
+            | Instruction::I64Load16S(align, offset)
+            | Instruction::I64Load32S(align, offset)
+            | Instruction::I32Load8U(align, offset)
+            | Instruction::I32Load16U(align, offset)
+            | Instruction::I64Load8U(align, offset)
+            | Instruction::I64Load16U(align, offset)
+            | Instruction::I64Load32U(align, offset)
+            | Instruction::I32Store8(align, offset)
+            | Instruction::I32Store16(align, offset)
+            | Instruction::I64Store8(align, offset)
+            | Instruction::I64Store16(align, offset)
+            | Instruction::I64Store32(align, offset) => {
+                write::unsigned(writer, *align as u64)? + write::unsigned(writer, *offset as u64)?
+            }
+            _ => 0,
+        };
+
+        Ok(written)
+    }
 }
 
 impl From<&Instruction> for u8 {
