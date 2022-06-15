@@ -1,6 +1,9 @@
+use crate::Error;
 use crate::ValType;
+use leb128::write;
+use std::io::Write;
 
-#[derive(Copy, Clone)]
+#[derive(Clone)]
 pub enum Instruction {
     /// `Block(return_value)`
     Block(ValType),
@@ -10,8 +13,9 @@ pub enum Instruction {
     Br(u32),
     /// `BrIf(depth)`
     BrIf(u32),
-    /// `BrTable(table_id, default/fallback)`
-    BrTable(u32, u32),
+    // this should have a better type
+    /// `BrTable(table, default / fallback)`
+    BrTable(Box<Vec<u32>>, u32),
     /// `If(return_value)`
     If(ValType),
     Else,
@@ -149,10 +153,94 @@ pub enum Instruction {
     F64Gt,
     F32Ge,
     F64Ge,
+
+    I32WrapI64,
+    I64ExtendI32S,
+    I64ExtendI32U,
+    I32TruncF32S,
+    I32TruncF64S,
+    I64TruncF32S,
+    I64TruncF64S,
+    I32TruncF32U,
+    I32TruncF64U,
+    I64TruncF32U,
+    I64TruncF64U,
+    F32DemoteF64,
+    F64PromoteF32,
+    F32ConvertI32S,
+    F32ConvertI64S,
+    F64ConvertI32S,
+    F64ConvertI64S,
+    F32ConvertI32U,
+    F32ConvertI64U,
+    F64ConvertI32U,
+    F64ConvertI64U,
+    I32ReinterpretF32,
+    I64ReinterpretF64,
+    F32ReinterpretI32,
+    F64ReinterpretI64,
+    I32Extend8S,
+    I32Extend16S,
+    I64Extend8S,
+    I64Extend16S,
+    I64Extend32S,
+
+    /// `I32Load(align, offset)`
+    I32Load(u32, u32),
+    /// `I64Load(align, offset)`
+    I64Load(u32, u32),
+    /// `F32Load(align, offset)`
+    F32Load(u32, u32),
+    /// `F64Load(align, offset)`
+    F64Load(u32, u32),
+    /// `I32Store(align, offset)`
+    I32Store(u32, u32),
+    /// `I64Store(align, offset)`
+    I64Store(u32, u32),
+    /// `F32Store(align, offset)`
+    F32Store(u32, u32),
+    /// `F64Store(align, offset)`
+    F64Store(u32, u32),
+
+    /// `I32Load8S(align, offset)`
+    I32Load8S(u32, u32),
+    /// `I32Load16S(align, offset)`
+    I32Load16S(u32, u32),
+    /// `I64Load8S(align, offset)`
+    I64Load8S(u32, u32),
+    /// `I64Load16S(align, offset)`
+    I64Load16S(u32, u32),
+    /// `I64Load32S(align, offset)`
+    I64Load32S(u32, u32),
+
+    /// `I32Load8U(align, offset)`
+    I32Load8U(u32, u32),
+    /// `I32Load16U(align, offset)`
+    I32Load16U(u32, u32),
+    /// `I64Load8U(align, offset)`
+    I64Load8U(u32, u32),
+    /// `I64Load16U(align, offset)`
+    I64Load16U(u32, u32),
+    /// `I64Load32U(align, offset)`
+    I64Load32U(u32, u32),
+
+    /// `I32Store8(align, offset)`
+    I32Store8(u32, u32),
+    /// `I32Store16(align, offset)`
+    I32Store16(u32, u32),
+    /// `I64Store8(align, offset)`
+    I64Store8(u32, u32),
+    /// `I64Store16(align, offset)`
+    I64Store16(u32, u32),
+    /// `I64Store16(align, offset)`
+    I64Store32(u32, u32),
+
+    MemoryGrow,
+    MemorySize,
 }
 
-impl From<Instruction> for u8 {
-    fn from(instr: Instruction) -> Self {
+impl From<&Instruction> for u8 {
+    fn from(instr: &Instruction) -> Self {
         match instr {
             Instruction::Block(_) => 0x02,
             Instruction::Loop(_) => 0x03,
@@ -276,6 +364,61 @@ impl From<Instruction> for u8 {
             Instruction::F64Gt => 0x64,
             Instruction::F32Ge => 0x60,
             Instruction::F64Ge => 0x66,
+            Instruction::I32WrapI64 => 0xA7,
+            Instruction::I64ExtendI32S => 0xAC,
+            Instruction::I64ExtendI32U => 0xAD,
+            Instruction::I32TruncF32S => 0xA8,
+            Instruction::I32TruncF64S => 0xAA,
+            Instruction::I64TruncF32S => 0xAE,
+            Instruction::I64TruncF64S => 0xB0,
+            Instruction::I32TruncF32U => 0xA9,
+            Instruction::I32TruncF64U => 0xAB,
+            Instruction::I64TruncF32U => 0xAF,
+            Instruction::I64TruncF64U => 0xB1,
+            Instruction::F32DemoteF64 => 0xB6,
+            Instruction::F64PromoteF32 => 0xBB,
+            Instruction::F32ConvertI32S => 0xB2,
+            Instruction::F32ConvertI64S => 0xB4,
+            Instruction::F64ConvertI32S => 0xB7,
+            Instruction::F64ConvertI64S => 0xB9,
+            Instruction::F32ConvertI32U => 0xB3,
+            Instruction::F32ConvertI64U => 0xB5,
+            Instruction::F64ConvertI32U => 0xB8,
+            Instruction::F64ConvertI64U => 0xBA,
+            Instruction::I32ReinterpretF32 => 0xBC,
+            Instruction::I64ReinterpretF64 => 0xBD,
+            Instruction::F32ReinterpretI32 => 0xBE,
+            Instruction::F64ReinterpretI64 => 0xBF,
+            Instruction::I32Extend8S => 0xC0,
+            Instruction::I32Extend16S => 0xC1,
+            Instruction::I64Extend8S => 0xC2,
+            Instruction::I64Extend16S => 0xC3,
+            Instruction::I64Extend32S => 0xC4,
+            Instruction::I32Load(_, _) => 0x28,
+            Instruction::I64Load(_, _) => 0x29,
+            Instruction::F32Load(_, _) => 0x2A,
+            Instruction::F64Load(_, _) => 0x2B,
+            Instruction::I32Store(_, _) => 0x36,
+            Instruction::I64Store(_, _) => 0x37,
+            Instruction::F32Store(_, _) => 0x38,
+            Instruction::F64Store(_, _) => 0x39,
+            Instruction::I32Load8S(_, _) => 0x2C,
+            Instruction::I32Load16S(_, _) => 0x2E,
+            Instruction::I64Load8S(_, _) => 0x30,
+            Instruction::I64Load16S(_, _) => 0x32,
+            Instruction::I64Load32S(_, _) => 0x34,
+            Instruction::I32Load8U(_, _) => 0x2D,
+            Instruction::I32Load16U(_, _) => 0x2F,
+            Instruction::I64Load8U(_, _) => 0x31,
+            Instruction::I64Load16U(_, _) => 0x33,
+            Instruction::I64Load32U(_, _) => 0x35,
+            Instruction::I32Store8(_, _) => 0x3A,
+            Instruction::I32Store16(_, _) => 0x3B,
+            Instruction::I64Store8(_, _) => 0x3C,
+            Instruction::I64Store16(_, _) => 0x3D,
+            Instruction::I64Store32(_, _) => 0x3E,
+            Instruction::MemoryGrow => 0x40,
+            Instruction::MemorySize => 0x3F,
         }
     }
 }
