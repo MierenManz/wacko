@@ -32,3 +32,45 @@ impl ResizableLimits {
         Ok(())
     }
 }
+
+#[cfg(test)]
+mod test {
+    use crate::*;
+    #[test]
+    fn encode_same_minmax() {
+        let mut writer = Vec::new();
+        ResizableLimits {
+            minimum: 1,
+            maximum: Some(1),
+        }
+        .encode(&mut writer)
+        .unwrap();
+
+        assert_eq!(writer, vec![0x01, 0x01, 0x01])
+    }
+
+    #[test]
+    fn encode_no_max() {
+        let mut writer = Vec::new();
+        ResizableLimits {
+            minimum: 1,
+            maximum: None,
+        }
+        .encode(&mut writer)
+        .unwrap();
+
+        assert_eq!(writer, vec![0x00, 0x01])
+    }
+
+    #[test]
+    fn validate_max_lt_min() {
+        let res = ResizableLimits {
+            minimum: 2,
+            maximum: Some(1),
+        }
+        .validate()
+        .unwrap_err();
+
+        assert_eq!(res, ValidationError::InvalidMemorySetting)
+    }
+}
