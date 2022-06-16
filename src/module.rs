@@ -32,9 +32,10 @@ pub struct Module {
 }
 
 impl Module {
-    pub fn new(optimize: bool, validate: bool) -> Self {
+    pub fn new(validate: bool) -> Self {
         Self {
-            optimize,
+            // Will be implemented later
+            optimize: false,
             validate,
             type_section: Default::default(),
             fn_section: Default::default(),
@@ -169,7 +170,7 @@ impl Module {
 
     pub fn compile_stream(mut self, writer: &mut impl Write) -> Result<usize, Error> {
         if self.optimize {
-            self.optimize();
+            self.code_section = self.code_section.optimize();
         }
 
         if self.validate {
@@ -188,9 +189,6 @@ impl Module {
         Ok(written)
     }
 
-    fn optimize(&mut self) {
-        self.code_section.optimize();
-    }
     fn validate(&self) -> Result<(), ValidationError> {
         if self.import_section.count() > 0 {
             self.import_section.validate()?;
@@ -205,7 +203,8 @@ impl Module {
         }
 
         self.type_section.validate()?;
-        self.code_section.validate()?;
+        // Will be implemented later
+        // self.code_section.validate()?;
         Ok(())
     }
 }

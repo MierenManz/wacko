@@ -1,6 +1,6 @@
 use crate::Error;
 use crate::FnBody;
-use crate::ValidationError;
+// use crate::ValidationError;
 use leb128::write;
 use std::io::Write;
 
@@ -19,10 +19,20 @@ impl CodeSection {
         self.code_blocks.push(code_block);
     }
 
-    pub fn optimize(&mut self) {}
-    pub fn validate(&self) -> Result<(), ValidationError> {
-        Ok(())
+    pub fn optimize(self) -> Self {
+        let mut bodies = Vec::new();
+        for mut fn_body in self.code_blocks {
+            fn_body.optimize();
+            bodies.push(fn_body);
+        }
+
+        Self {
+            code_blocks: bodies,
+        }
     }
+    // pub fn validate(&self) -> Result<(), ValidationError> {
+    //     Ok(())
+    // }
 
     pub fn compile(self, writer: &mut impl Write) -> Result<usize, Error> {
         let mut written = 0;

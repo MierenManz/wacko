@@ -69,6 +69,8 @@ impl FnBody {
         writer.write_all(&buff)?;
         Ok(written)
     }
+
+    pub(crate) fn optimize(&mut self) {}
 }
 
 #[cfg(test)]
