@@ -199,6 +199,7 @@ impl Module {
         Ok(written)
     }
 
+    // Does not need to validate fndecl and code section. These are always the same length
     fn validate(&self) -> Result<(), ValidationError> {
         if self.import_section.count() > 0 {
             self.import_section.validate()?;
