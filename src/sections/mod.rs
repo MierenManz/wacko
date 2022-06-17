@@ -1,4 +1,5 @@
 mod code_section;
+mod data_section;
 mod element_section;
 mod export_section;
 mod function_section;
@@ -8,6 +9,7 @@ mod memory_section;
 mod table_section;
 mod type_section;
 pub use code_section::CodeSection;
+pub use data_section::DataSection;
 pub use element_section::ElementSection;
 pub use export_section::ExportKind;
 pub use export_section::ExportSection;

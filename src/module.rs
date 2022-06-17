@@ -1,4 +1,5 @@
 use crate::CodeSection;
+use crate::DataSection;
 use crate::ElementSection;
 use crate::Error;
 use crate::ExportKind;
@@ -29,6 +30,7 @@ pub struct Module {
     global_section: GlobalSection,
     export_section: ExportSection,
     element_section: ElementSection,
+    data_section: DataSection,
 }
 
 impl Module {
@@ -47,6 +49,7 @@ impl Module {
             global_section: Default::default(),
             export_section: Default::default(),
             element_section: Default::default(),
+            data_section: Default::default(),
         }
     }
 
@@ -102,13 +105,17 @@ impl Module {
         &mut self,
         descriptor: ResizableLimits,
         export_name: Option<&'_ str>,
-    ) -> Result<(), ValidationError> {
+    ) -> Result<usize, ValidationError> {
         let mem_index = self.memory_section.add_descriptor(descriptor) as u32;
         if let Some(name) = export_name {
             self.add_export(ExportKind::Memory(mem_index), name)?;
         }
 
-        Ok(())
+        Ok(mem_index as usize)
+    }
+
+    pub fn add_data<T: Into<Vec<u8>>>(&mut self, mem_idx: u32, offset: i32, data: T) {
+        self.data_section.add_data(mem_idx, offset, data.into())
     }
 
     /// Footgun. Needs to be used before `add_function` otherwise this may generate a corrupt binary
@@ -125,7 +132,9 @@ impl Module {
                 self.add_fn_decl(type_def);
             }
             ExternalKind::Global(desc) => self.add_global_descriptor(desc, None).unwrap(),
-            ExternalKind::Memory(desc) => self.add_memory_descriptor(desc, None).unwrap(),
+            ExternalKind::Memory(desc) => {
+                self.add_memory_descriptor(desc, None).unwrap();
+            }
             ExternalKind::Table(desc) => {
                 self.add_table_descriptor(desc, None).unwrap();
             }
@@ -186,6 +195,7 @@ impl Module {
         written += self.export_section.compile(writer)?;
         written += self.element_section.compile(writer)?;
         written += self.code_section.compile(writer)?;
+        written += self.data_section.compile(writer)?;
         Ok(written)
     }
 
