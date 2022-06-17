@@ -5,8 +5,8 @@ use std::io::Write;
 
 #[derive(Copy, Clone, PartialEq)]
 pub struct ResizableLimits {
-    pub minimum: u32,
-    pub maximum: Option<u32>,
+    pub minimum: u16,
+    pub maximum: Option<u16>,
 }
 
 impl ResizableLimits {
