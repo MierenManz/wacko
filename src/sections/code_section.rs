@@ -55,3 +55,30 @@ impl Default for CodeSection {
         Self::new()
     }
 }
+
+#[cfg(test)]
+mod test {
+    use crate::*;
+    #[test]
+    fn encode() {
+        let mut buff = Vec::new();
+        let mut fn_body = FnBody::new(vec![ValType::I32], vec![ValType::I32]);
+        fn_body.add_instructions([
+            Instruction::LocalGet(0),
+            Instruction::LocalGet(1),
+            Instruction::I32Add,
+            Instruction::End,
+        ]);
+        let mut code = CodeSection::new();
+        code.add_fn_body(fn_body.clone());
+        code.add_fn_body(fn_body);
+        code.compile(&mut buff).unwrap();
+        assert_eq!(
+            buff,
+            vec![
+                0x0A, 0x02, 0x07, 0x00, 0x20, 0x00, 0x20, 0x01, 0x6A, 0x0B, 0x07, 0x00, 0x20, 0x00, 0x20,
+                0x01, 0x6A, 0x0B
+            ]
+        )
+    }
+}

@@ -4,6 +4,7 @@ use crate::ValType;
 use leb128::write;
 use std::io::Write;
 
+#[derive(Clone)]
 pub struct FnBody {
     fn_type: (Vec<ValType>, Vec<ValType>),
     /// `Vec<(count, ValType)>`
@@ -86,8 +87,9 @@ mod test {
             Instruction::LocalGet(0),
             Instruction::LocalGet(1),
             Instruction::I32Add,
+            Instruction::End,
         ]);
         fn_body.compile(&mut buff).unwrap();
-        assert_eq!(buff, vec![0x06, 0x00, 0x20, 0x00, 0x20, 0x01, 0x6A]);
+        assert_eq!(buff, vec![0x07, 0x00, 0x20, 0x00, 0x20, 0x01, 0x6A, 0x0B]);
     }
 }
