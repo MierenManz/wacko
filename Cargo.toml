@@ -5,6 +5,7 @@ edition = "2021"
 description = "WebAssembly Encoder"
 license = "MIT"
 readme = "./readme.md"
+exclude = ["testdata"]
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 [lib]
