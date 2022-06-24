@@ -54,30 +54,33 @@ impl TypeSection {
     }
 
     pub fn compile(self, writer: &mut impl Write) -> Result<usize, Error> {
-        let mut written = 0;
-        written += writer.write(&[Self::id()])?;
+        let mut written = writer.write(&Self::id().to_le_bytes())?;
         written += write::unsigned(writer, self.definitions.len() as u64)?;
+        let mut i = 1;
+        for (params, result) in self.definitions {
+            let mut buff = Vec::new();
+            write::unsigned(&mut buff, i as u64)?;
+            (&mut buff).write(&[ValType::Func.into()])?;
 
-        for (params, results) in self.definitions {
-            written += writer.write(&[ValType::Func.into()])?;
-
-            written += write::unsigned(writer, params.len() as u64)?;
+            write::unsigned(&mut buff, params.len() as u64)?;
             for x in params {
-                written += writer.write(&[x.into()])?;
+                (&mut buff).write(&[x.into()])?;
             }
 
-            written += write::unsigned(writer, results.len() as u64)?;
-            for x in results {
-                written += writer.write(&[x.into()])?;
+            write::unsigned(&mut buff, result.len() as u64)?;
+            for x in result {
+                (&mut buff).write(&[x.into()])?;
             }
+            written += write::unsigned(writer, buff.len() as u64)?;
+            writer.write_all(&buff)?;
+            written += buff.len();
+            i+= 1;
         }
-
-        writer.flush()?;
 
         Ok(written)
     }
 
-    fn id() -> u8 {
+    fn id() -> u32 {
         0x01
     }
 }
