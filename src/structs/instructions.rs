@@ -3,8 +3,8 @@ use crate::ValType;
 use leb128::write;
 use std::io::Write;
 
-#[derive(Clone, PartialEq)]
-pub enum Instruction {
+#[derive(Debug, Copy, Clone, PartialEq)]
+pub enum Instruction<'a> {
     /// `Block(return_value)`
     Block(ValType),
     /// `Loop(return_value)`
@@ -15,7 +15,7 @@ pub enum Instruction {
     BrIf(u32),
     // this should have a better type
     /// `BrTable(table, default / fallback)`
-    BrTable(Box<Vec<u32>>, u32),
+    BrTable(&'a [u32], u32),
     /// `If(return_value)`
     If(ValType),
     Else,
@@ -165,6 +165,7 @@ pub enum Instruction {
     I32TruncF64U,
     I64TruncF32U,
     I64TruncF64U,
+
     F32DemoteF64,
     F64PromoteF32,
     F32ConvertI32S,
@@ -237,11 +238,36 @@ pub enum Instruction {
 
     MemoryGrow,
     MemorySize,
+
+    // RefNull,
+    // RefIsNull,
+    // RefFunc,
+
+    // 0xFC instructions
+    I32TruncSatF32S,
+    I32TruncSatF64S,
+    I64TruncSatF32S,
+    I64TruncSatF64S,
+    I32TruncSatF32U,
+    I32TruncSatF64U,
+    I64TruncSatF32U,
+    I64TruncSatF64U,
+
+    // MemoryInit,
+    // DataDrop,
+    // MemoryCopy,
+    // MemoryFill,
+    // TableInit,
+    // ElemDrop,
+    // TableCopy,
+    // TableGrow,
+    // TableSize,
+    // TableFill,
 }
 
-impl Instruction {
+impl Instruction<'_> {
     pub fn encode(&self, writer: &mut impl Write) -> Result<usize, Error> {
-        let mut written = writer.write(&[self.into()])?;
+        let mut written = self.write_opcode(writer)?;
         written += match self {
             Instruction::Block(v) | Instruction::Loop(v) => writer.write(&[(*v).into()])?,
             Instruction::Br(depth) | Instruction::BrIf(depth) => {
@@ -300,11 +326,9 @@ impl Instruction {
 
         Ok(written)
     }
-}
 
-impl From<&Instruction> for u8 {
-    fn from(instr: &Instruction) -> Self {
-        match instr {
+    pub fn write_opcode(self, writer: &mut impl Write) -> Result<usize, Error> {
+        let byte = match self {
             Instruction::Block(_) => 0x02,
             Instruction::Loop(_) => 0x03,
             Instruction::Br(_) => 0x0C,
@@ -482,6 +506,24 @@ impl From<&Instruction> for u8 {
             Instruction::I64Store32(_, _) => 0x3E,
             Instruction::MemoryGrow => 0x40,
             Instruction::MemorySize => 0x3F,
+            _ => 0xFC,
+        };
+        let mut written = writer.write(&[byte])?;
+        if byte == 0xFC {
+            let other_byte = match self {
+                Instruction::I32TruncSatF32S => 0x00,
+                Instruction::I32TruncSatF32U => 0x01,
+                Instruction::I32TruncSatF64S => 0x02,
+                Instruction::I32TruncSatF64U => 0x03,
+                Instruction::I64TruncSatF32S => 0x04,
+                Instruction::I64TruncSatF32U => 0x05,
+                Instruction::I64TruncSatF64S => 0x06,
+                Instruction::I64TruncSatF64U => 0x07,
+                _ => unreachable!(),
+            };
+            written += writer.write(&[other_byte])?;
         }
+
+        Ok(written)
     }
 }

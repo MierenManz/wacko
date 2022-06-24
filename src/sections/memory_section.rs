@@ -33,8 +33,10 @@ impl MemorySection {
     }
 
     pub fn compile(self, writer: &mut impl Write) -> Result<usize, Error> {
-        let mut written = 0;
-        written += writer.write(&[Self::id()])?;
+        if self.descriptors.is_empty() {
+            return Ok(0);
+        }
+        let mut written = writer.write(&[Self::id()])?;
         written += write::unsigned(writer, self.descriptors.len() as u64)?;
 
         for x in self.descriptors {

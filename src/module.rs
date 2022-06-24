@@ -18,12 +18,14 @@ use crate::ValType;
 use crate::ValidationError;
 use std::io::Write;
 
-pub struct Module {
+const MAGIC: [u8; 8] = *b"\0asm\x01\0\0\0";
+
+pub struct Module<'a> {
     optimize: bool,
     validate: bool,
     type_section: TypeSection,
     fn_section: FunctionSection,
-    code_section: CodeSection,
+    code_section: CodeSection<'a>,
     import_section: ImportSection,
     table_section: TableSection,
     memory_section: MemorySection,
@@ -33,7 +35,7 @@ pub struct Module {
     data_section: DataSection,
 }
 
-impl Module {
+impl<'a> Module<'a> {
     pub fn new(validate: bool) -> Self {
         Self {
             // Will be implemented later
@@ -72,13 +74,12 @@ impl Module {
     /// Footgun. Needs to be used after `add_import` otherwise this may generate a corrupt binary
     pub fn add_function(
         &mut self,
-        fn_body: FnBody,
+        fn_body: FnBody<'a>,
         export_name: Option<&'_ str>,
     ) -> Result<usize, ValidationError> {
         let (params, return_type) = fn_body.get_fn_type();
         let type_id = self.add_type(params, return_type) as u32;
         let fn_index = self.add_fn_decl(type_id) as u32;
-
         if let Some(name) = export_name {
             self.add_export(ExportKind::Function(fn_index), name)?;
         }
@@ -156,6 +157,7 @@ impl Module {
         Ok(table_index as usize)
     }
 
+    /// `elements` needs to be a vector of function indexes
     pub fn add_table(
         &mut self,
         table_descriptor: ResizableLimits,
@@ -186,7 +188,8 @@ impl Module {
             self.validate()?;
         }
 
-        let mut written = self.type_section.compile(writer)?;
+        let mut written = writer.write(&MAGIC)?;
+        written += self.type_section.compile(writer)?;
         written += self.import_section.compile(writer)?;
         written += self.fn_section.compile(writer)?;
         written += self.table_section.compile(writer)?;

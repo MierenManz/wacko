@@ -20,15 +20,16 @@ impl FunctionSection {
     }
 
     pub fn compile(self, writer: &mut impl Write) -> Result<usize, Error> {
-        let mut written = 0;
-        written += writer.write(&[Self::id()])?;
-        written += write::unsigned(writer, self.declarations.len() as u64)?;
+        writer.write(&[Self::id()])?;
+        let mut buff = Vec::new();
+        write::unsigned(&mut buff, self.declarations.len() as u64)?;
         for x in self.declarations {
-            written += write::unsigned(writer, x as u64)?;
+            write::unsigned(&mut buff, x as u64)?;
         }
 
-        writer.flush()?;
-        Ok(written)
+        write::unsigned(writer, buff.len() as u64)?;
+        writer.write_all(&buff)?;
+        Ok(buff.len() + 1)
     }
 
     fn id() -> u8 {

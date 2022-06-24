@@ -17,9 +17,10 @@ impl DataSection {
     }
 
     pub fn compile(self, writer: &mut impl Write) -> Result<usize, Error> {
-        let mut written = 0;
-
-        written += writer.write(&[Self::id()])?;
+        if self.data.is_empty() {
+            return Ok(0);
+        }
+        let mut written = writer.write(&[Self::id()])?;
         written += write::unsigned(writer, self.data.len() as u64)?;
 
         for (index, offset, data) in self.data {

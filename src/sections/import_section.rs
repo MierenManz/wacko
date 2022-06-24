@@ -60,8 +60,10 @@ impl ImportSection {
     }
 
     pub fn compile(self, writer: &mut impl Write) -> Result<usize, Error> {
-        let mut written = 0;
-        written += writer.write(&[Self::id()])?;
+        if self.imports.is_empty() {
+            return Ok(0);
+        };
+        let mut written = writer.write(&Self::id().to_le_bytes())?;
         written += write::unsigned(writer, self.imports.len() as u64)?;
 
         for (module_name, external_name, kind) in self.imports {

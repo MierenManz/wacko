@@ -5,14 +5,14 @@ use leb128::write;
 use std::io::Write;
 
 #[derive(Clone)]
-pub struct FnBody {
+pub struct FnBody<'a> {
     fn_type: (Vec<ValType>, Vec<ValType>),
     /// `Vec<(count, ValType)>`
     locals: Vec<(u32, ValType)>,
-    instructions: Vec<Instruction>,
+    instructions: Vec<Instruction<'a>>,
 }
 
-impl FnBody {
+impl<'a> FnBody<'a> {
     pub fn new(arguments: Vec<ValType>, return_type: Vec<ValType>) -> Self {
         let returns = if return_type.is_empty() {
             vec![ValType::Void]
@@ -37,13 +37,13 @@ impl FnBody {
         self.locals.push((0, kind));
     }
 
-    pub fn add_instruction(&mut self, instruction: Instruction) {
+    pub fn add_instruction(&mut self, instruction: Instruction<'a>) {
         self.instructions.push(instruction);
     }
 
     pub fn add_instructions<T>(&mut self, instructions: T)
     where
-        T: IntoIterator<Item = Instruction>,
+        T: IntoIterator<Item = Instruction<'a>>,
     {
         self.instructions.extend(instructions)
     }
@@ -53,22 +53,21 @@ impl FnBody {
     }
 
     pub(crate) fn compile(self, writer: &mut impl Write) -> Result<usize, Error> {
-        let mut written = 0;
         let mut buff = Vec::with_capacity(self.locals.len() * 3 + self.instructions.len());
 
-        written += write::unsigned(&mut buff, self.locals.len() as u64)?;
+        write::unsigned(&mut buff, self.locals.len() as u64)?;
         for local in self.locals {
-            written += write::unsigned(&mut buff, local.0 as u64)?;
-            written += (&mut buff).write(&[local.1.into()])?;
+            write::unsigned(&mut buff, local.0 as u64)?;
+            (&mut buff).write(&[local.1.into()])?;
         }
 
         for x in self.instructions {
-            written += x.encode(&mut buff)?;
+            x.encode(&mut buff)?;
         }
 
-        written += write::unsigned(writer, written as u64)?;
+        write::unsigned(writer, buff.len() as u64)?;
         writer.write_all(&buff)?;
-        Ok(written)
+        Ok(buff.len() + 1)
     }
 
     pub(crate) fn optimize(&mut self) {}
