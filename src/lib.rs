@@ -10,7 +10,9 @@ pub use structs::FnBody;
 pub use structs::GlobalDescriptor;
 pub use structs::GlobalValue;
 pub use structs::Instruction;
-pub use structs::ResizableLimits;
+pub use structs::Memory;
+pub(crate) use structs::ResizableLimits;
+pub use structs::Table;
 pub use structs::ValType;
 
 #[cfg(test)]
@@ -114,10 +116,9 @@ mod test {
 
         fn_body.add_instructions(instructions);
 
-        module.add_function(fn_body, None).unwrap();
+        module.add_function(fn_body, None);
         let output = module.compile().unwrap();
         let reference = std::fs::read("testdata/fn/i32.wasm").unwrap();
         assert_eq!(reference, output);
     }
-
 }

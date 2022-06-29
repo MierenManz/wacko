@@ -33,17 +33,24 @@ impl ExportSection {
         }
     }
 
-    pub fn add_export(
-        &mut self,
-        export_kind: ExportKind,
-        export_name: &str,
-    ) -> Result<(), ValidationError> {
-        for (name, kind) in &self.exports {
-            if *kind == export_kind && *name == export_name {
-                return Err(ValidationError::Duplicate);
+    pub fn add_export(&mut self, export_kind: ExportKind, export_name: &str) -> usize {
+        self.exports.push((export_name.to_string(), export_kind));
+
+        self.exports.len() - 1
+    }
+
+    pub fn validate(&self) -> Result<(), ValidationError> {
+        for i in 0..self.exports.len() {
+            let (base_name, base_kind) = &self.exports[i];
+            if i + 1 < self.exports.len() {
+                for j in i + 1..self.exports.len() {
+                    let (cmp_name, cmp_kind) = &self.exports[j];
+                    if base_name == cmp_name && base_kind == cmp_kind {
+                        return Err(ValidationError::Duplicate);
+                    }
+                }
             }
         }
-        self.exports.push((export_name.to_string(), export_kind));
 
         Ok(())
     }
@@ -73,6 +80,10 @@ impl ExportSection {
         writer.write_all(&buff)?;
 
         Ok(buff.len() + 1)
+    }
+
+    pub fn count(&self) -> usize {
+        self.exports.len()
     }
 
     fn id() -> u8 {

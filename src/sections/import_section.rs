@@ -20,17 +20,12 @@ impl ImportSection {
         module_name: T,
         external_name: T,
         external_kind: ExternalKind,
-    ) -> Result<(), ValidationError> {
+    ) -> usize {
         let mod_name = module_name.into();
         let extern_name = external_name.into();
-        for (module, name, kind) in &self.imports {
-            if mod_name == *module && extern_name == *name && external_kind == *kind {
-                return Err(ValidationError::Duplicate);
-            }
-        }
         self.imports.push((mod_name, extern_name, external_kind));
 
-        Ok(())
+        self.imports.len() - 1
     }
 
     pub fn count(&self) -> usize {
@@ -42,8 +37,18 @@ impl ImportSection {
             return Err(ValidationError::ArrayOverflow);
         }
 
-        for (_, _, kind) in &self.imports {
-            match kind {
+        for i in 0..self.imports.len() {
+            let (base_ns, base_name, base_kind) = &self.imports[i];
+            if i + 1 < self.imports.len() {
+                for j in i + 1..self.imports.len() {
+                    let (cmp_ns, cmp_name, cmp_kind) = &self.imports[j];
+                    if base_ns == cmp_ns && base_name == cmp_name && base_kind == cmp_kind {
+                        return Err(ValidationError::Duplicate);
+                    }
+                }
+            }
+
+            match base_kind {
                 ExternalKind::Memory(descriptor) | ExternalKind::Table(descriptor) => {
                     descriptor.validate()?;
                 }

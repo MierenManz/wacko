@@ -5,8 +5,8 @@ use std::io::Write;
 
 #[derive(Copy, Clone, PartialEq)]
 pub struct ResizableLimits {
-    pub minimum: u16,
-    pub maximum: Option<u16>,
+    pub minimum: u32,
+    pub maximum: Option<u32>,
 }
 
 impl ResizableLimits {
@@ -30,6 +30,54 @@ impl ResizableLimits {
         }
 
         Ok(())
+    }
+}
+
+#[derive(Clone, Debug)]
+pub struct Memory {
+    min: u16,
+    max: Option<u16>,
+    bytes: Vec<u8>,
+}
+
+impl Memory {
+    /// `min` is minimum "heap" size in pages (this is the amount of pages that don't have static data in them)
+    ///
+    /// `max` is the maximum "heap" size in pages if the wasm memory is allowed to grow
+    pub fn new(min: u16, max: Option<u16>) -> Self {
+        Self {
+            min,
+            max,
+            bytes: Vec::with_capacity((min as usize) * 64 * 1024),
+        }
+    }
+
+    /// Push a byte of static data and return the wasm pointer of it
+    pub fn push<T: Into<u8>>(&mut self, data: T) -> usize {
+        self.bytes.push(data.into());
+        self.bytes.len() - 1
+    }
+    /// Push a slice of static data and return the wasm pointer of it
+    pub fn extend_from_slice(&mut self, slice: &[u8]) -> usize {
+        self.bytes.extend(slice);
+        self.bytes.len() - slice.len()
+    }
+
+    /// Push the content of a `IntoIterator<Item = u8>` and return the wasm pointer of it
+    pub fn extend_from_iter<I: IntoIterator<Item = u8>>(&mut self, data: I) -> usize {
+        let iter: Vec<u8> = data.into_iter().collect();
+        self.extend_from_slice(&iter)
+    }
+
+    pub(crate) fn inner(&self) -> ResizableLimits {
+        ResizableLimits {
+            minimum: self.min as u32,
+            maximum: self.max.map(|x| x as u32),
+        }
+    }
+
+    pub(crate) fn mem_slice(&self) -> &[u8] {
+        &self.bytes
     }
 }
 

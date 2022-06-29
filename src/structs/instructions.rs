@@ -252,7 +252,6 @@ pub enum Instruction<'a> {
     I32TruncSatF64U,
     I64TruncSatF32U,
     I64TruncSatF64U,
-
     // MemoryInit,
     // DataDrop,
     // MemoryCopy,
