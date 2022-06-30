@@ -12,9 +12,7 @@ env:
 jobs:
   test:
     strategy:
-      matrix:
-        os: [ubuntu-latest, windows-latest, macosx-latest]
-        runs-on: ${{ matrix.os }}
+      runs-on: [ubuntu-latest, windows-latest, macosx-latest]
 
     steps:
     - uses: actions/checkout@v3
@@ -23,9 +21,8 @@ jobs:
 
   release_build:
     strategy:
-      matrix:
-        os: [ubuntu-latest, windows-latest, macosx-latest]
-        runs-on: ${{ matrix.os }}
+      runs-on: [ubuntu-latest, windows-latest, macosx-latest]
+
     steps:
     - uses: actions/checkout@v3
     - name: build release
