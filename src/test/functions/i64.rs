@@ -118,7 +118,6 @@ fn i64_test() {
         Instruction::Drop,
         Instruction::F64Const(1f64),
         Instruction::I64TruncSatF64U,
-        Instruction::End,
     ];
 
     fn_body.add_instructions(instructions);

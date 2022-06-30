@@ -11,7 +11,6 @@ fn i64_test() {
       Instruction::LocalTee(1),
       Instruction::LocalSet(2),
       Instruction::LocalGet(0),
-      Instruction::End,
     ];
 
     fn_body.add_instructions(instructions);

@@ -68,7 +68,6 @@ fn f64_test() {
     Instruction::Drop,
     Instruction::I64Const(1),
     Instruction::F64ReinterpretI64,
-    Instruction::End,
   ];
 
   fn_body.add_instructions(instructions);

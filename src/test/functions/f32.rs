@@ -67,7 +67,6 @@ fn f32_test() {
     Instruction::Drop,
     Instruction::I32Const(1),
     Instruction::F32ReinterpretI32,
-    Instruction::End,
   ];
 
   fn_body.add_instructions(instructions);
