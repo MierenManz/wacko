@@ -77,7 +77,7 @@ impl Memory {
             (self.bytes.len() as f64 / ((1024 * 64) as f64)).ceil() as u32
         };
         ResizableLimits {
-            minimum: minimum,
+            minimum,
             maximum: self.max.map(|x| x as u32),
         }
     }
