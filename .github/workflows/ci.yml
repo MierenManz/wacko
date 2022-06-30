@@ -1,0 +1,32 @@
+name: Rust
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+env:
+  CARGO_TERM_COLOR: always
+
+jobs:
+  test:
+    strategy:
+      matrix:
+        os: [ubuntu-latest, windows-latest, macosx-latest]
+        runs-on: ${{ matrix.os }}
+
+    steps:
+    - uses: actions/checkout@v3
+    - name: Run tests
+      run: cargo test --verbose --all-targets
+
+  release_build:
+    strategy:
+      matrix:
+        os: [ubuntu-latest, windows-latest, macosx-latest]
+        runs-on: ${{ matrix.os }}
+    steps:
+    - uses: actions/checkout@v3
+    - name: build release
+      run: cargo build --release --all-targets
