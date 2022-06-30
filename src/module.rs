@@ -95,28 +95,51 @@ impl<'a> Module<'a> {
         table_index
     }
 
-    pub fn import_function<T: Into<String>>(&mut self, module: T, external: T, body: FnBody) -> u32 {
+    pub fn import_function<T: Into<String>>(
+        &mut self,
+        module: T,
+        external: T,
+        body: FnBody,
+    ) -> u32 {
         let (params, return_type) = body.get_fn_type();
         let type_idx = self.type_section.add_type_def(params, return_type) as u32;
         let function_idx = self.add_fn_decl(type_idx);
-        self.import_section.add_import(module, external, ExternalKind::Function(function_idx));
+        self.import_section
+            .add_import(module, external, ExternalKind::Function(function_idx));
 
         function_idx
     }
 
-    pub fn import_memory<T: Into<String>>(&mut self, module: T, external:T, descriptor: ResizableLimits) -> u32 {
-        self.import_section.add_import(module, external, ExternalKind::Memory(descriptor));
+    pub fn import_memory<T: Into<String>>(
+        &mut self,
+        module: T,
+        external: T,
+        descriptor: ResizableLimits,
+    ) -> u32 {
+        self.import_section
+            .add_import(module, external, ExternalKind::Memory(descriptor));
         self.add_memory_descriptor(descriptor, None)
     }
 
-
-    pub fn import_table<T: Into<String>>(&mut self, module: T, external:T, descriptor: ResizableLimits) -> u32 {
-        self.import_section.add_import(module, external, ExternalKind::Table(descriptor));
+    pub fn import_table<T: Into<String>>(
+        &mut self,
+        module: T,
+        external: T,
+        descriptor: ResizableLimits,
+    ) -> u32 {
+        self.import_section
+            .add_import(module, external, ExternalKind::Table(descriptor));
         self.add_table_descriptor(descriptor, None)
     }
 
-    pub fn import_global<T: Into<String>>(&mut self, module: T, external: T, descriptor: GlobalDescriptor) -> u32 {
-        self.import_section.add_import(module, external, ExternalKind::Global(descriptor));
+    pub fn import_global<T: Into<String>>(
+        &mut self,
+        module: T,
+        external: T,
+        descriptor: GlobalDescriptor,
+    ) -> u32 {
+        self.import_section
+            .add_import(module, external, ExternalKind::Global(descriptor));
         self.add_global_descriptor(descriptor, None)
     }
 
@@ -212,13 +235,17 @@ impl<'a> Module<'a> {
         writer.write_all(&MAGIC)?;
         self.type_section.compile(writer)?;
         self.import_section.compile(writer)?;
-        self.fn_section.compile(writer)?;
+        if self.code_section.count() > 0 {
+            self.fn_section.compile(self.code_section.count(), writer)?;
+        }
         self.table_section.compile(writer)?;
         self.memory_section.compile(writer)?;
         self.global_section.compile(writer)?;
         self.export_section.compile(writer)?;
         self.element_section.compile(writer)?;
-        self.code_section.compile(writer)?;
+        if self.code_section.count() > 0 {
+            self.code_section.compile(writer)?;
+        }
         self.data_section.compile(writer)?;
         Ok(())
     }

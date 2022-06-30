@@ -19,12 +19,12 @@ impl FunctionSection {
         self.declarations.len() - 1
     }
 
-    pub fn compile(self, writer: &mut impl Write) -> Result<(), Error> {
+    pub fn compile(self, block_count: usize, writer: &mut impl Write) -> Result<(), Error> {
         writer.write_all(&[Self::id()])?;
         let mut buff = Vec::new();
-        write::unsigned(&mut buff, self.declarations.len() as u64)?;
-        for x in self.declarations {
-            write::unsigned(&mut buff, x as u64)?;
+        write::unsigned(&mut buff, block_count as u64)?;
+        for i in self.declarations.len() - block_count..self.declarations.len() {
+            write::unsigned(&mut buff, self.declarations[i] as u64)?;
         }
 
         write::unsigned(writer, buff.len() as u64)?;

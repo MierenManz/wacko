@@ -51,7 +51,7 @@ impl<'a> FnBody<'a> {
         (&self.fn_type.0, &self.fn_type.1)
     }
 
-    pub(crate) fn compile(mut self, writer: &mut impl Write) -> Result<usize, Error> {
+    pub(crate) fn compile(mut self, writer: &mut impl Write) -> Result<(), Error> {
         let mut buff = Vec::new();
 
         write::unsigned(&mut buff, self.locals.len() as u64)?;
@@ -67,7 +67,7 @@ impl<'a> FnBody<'a> {
 
         write::unsigned(writer, buff.len() as u64)?;
         writer.write_all(&buff)?;
-        Ok(buff.len() + 1)
+        Ok(())
     }
 
     pub(crate) fn optimize(&mut self) {}

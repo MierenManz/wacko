@@ -74,17 +74,5 @@ fn f64_test() {
     module.add_function(fn_body, None);
     let output = module.compile().unwrap();
     let reference = std::fs::read("testdata/functions/f64.wasm").unwrap();
-
-    for x in 0..output.len() {
-        println!(
-            "{:?} ({:?}) \t{:?} ({:?}) \t{:?}",
-            reference[x],
-            reference[x] as *const u8,
-            output[x],
-            output[x] as *const u8,
-            reference[x] == output[x]
-        );
-    }
-    println!("{:?} {:?}", reference.len(), output.len());
     assert_eq!(reference, output);
 }

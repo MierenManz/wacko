@@ -68,19 +68,21 @@ impl ImportSection {
         if self.imports.is_empty() {
             return Ok(());
         };
+        let mut buff = Vec::new();
         writer.write_all(&[Self::id()])?;
-        write::unsigned(writer, self.imports.len() as u64)?;
+        write::unsigned(&mut buff, self.imports.len() as u64)?;
 
         for (module_name, external_name, kind) in self.imports {
-            write::unsigned(writer, module_name.len() as u64)?;
-            writer.write_all(module_name.as_bytes())?;
+            write::unsigned(&mut buff, module_name.len() as u64)?;
+            (&mut buff).write_all(module_name.as_bytes())?;
 
-            write::unsigned(writer, external_name.len() as u64)?;
-            writer.write_all(external_name.as_bytes())?;
+            write::unsigned(&mut buff, external_name.len() as u64)?;
+            (&mut buff).write_all(external_name.as_bytes())?;
 
-            kind.encode(writer)?;
+            kind.encode(&mut buff)?;
         }
-
+        write::unsigned(writer, buff.len() as u64)?;
+        writer.write_all(&buff)?;
         Ok(())
     }
 

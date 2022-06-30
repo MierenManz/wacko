@@ -34,7 +34,7 @@ impl<'a> CodeSection<'a> {
     //     Ok(())
     // }
 
-    pub fn compile(self, writer: &mut impl Write) -> Result<usize, Error> {
+    pub fn compile(self, writer: &mut impl Write) -> Result<(), Error> {
         writer.write_all(&[Self::id()])?;
         let mut buff = Vec::new();
         write::unsigned(&mut buff, self.code_blocks.len() as u64)?;
@@ -44,7 +44,11 @@ impl<'a> CodeSection<'a> {
         write::unsigned(writer, buff.len() as u64)?;
         writer.write_all(&buff)?;
 
-        Ok(buff.len() + 1)
+        Ok(())
+    }
+
+    pub(crate) fn count(&self) -> usize {
+        self.code_blocks.len()
     }
 
     fn id() -> u8 {
