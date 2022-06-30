@@ -26,7 +26,6 @@ fn control_flow_test() {
         Instruction::I32Const(1),
         Instruction::If(ValType::Void),
         Instruction::Return,
-        // Instruction::Else,
         Instruction::End,
         Instruction::I32Const(1),
         Instruction::If(ValType::I32),
