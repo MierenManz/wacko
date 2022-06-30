@@ -11,7 +11,10 @@ env:
 
 jobs:
   test:
-    runs-on: [ubuntu-latest, windows-latest, macosx-latest]
+    strategy:
+      matrix:
+        os: [ubuntu-latest, windows-latest, macosx-latest]
+    runs-on: {{ matrix.os }}
 
     steps:
     - uses: actions/checkout@v3
@@ -19,7 +22,10 @@ jobs:
       run: cargo test --verbose --all-targets
 
   release_build:
-    runs-on: [ubuntu-latest, windows-latest, macosx-latest]
+    strategy:
+      matrix:
+        os: [ubuntu-latest, windows-latest, macosx-latest]
+    runs-on: {{ matrix.os }}
 
     steps:
     - uses: actions/checkout@v3
