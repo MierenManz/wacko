@@ -9,9 +9,9 @@ pub struct Table {
 
 impl Table {
     /// `min` is the minimum amount of refs that are allocated at initialization
-    /// 
+    ///
     /// Initial page count may be higher than `min` if the initialized data is more than the pagecount allows for
-    /// 
+    ///
     /// `max` is maximum amount of refs available at runtime
     pub fn new(min: u32, max: Option<u32>) -> Self {
         Self {

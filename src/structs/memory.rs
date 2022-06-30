@@ -41,9 +41,9 @@ pub struct Memory {
 
 impl Memory {
     /// `min` is the minimum amount of pages that are allocated at initialization
-    /// 
+    ///
     /// Initial page count may be higher than `min` if the initialized data is more than the pagecount allows for
-    /// 
+    ///
     /// `max` is maximum amount of pages available at runtime
     pub fn new(min: u16, max: Option<u16>) -> Self {
         Self {

@@ -20,7 +20,7 @@ impl DataSection {
         if self.data.is_empty() {
             return Ok(());
         }
-         writer.write_all(&[Self::id()])?;
+        writer.write_all(&[Self::id()])?;
         write::unsigned(writer, self.data.len() as u64)?;
 
         for (index, offset, data) in self.data {

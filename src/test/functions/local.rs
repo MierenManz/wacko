@@ -7,10 +7,10 @@ fn i64_test() {
     fn_body.add_local(ValType::I32);
 
     let instructions = vec![
-      Instruction::LocalGet(0),
-      Instruction::LocalTee(1),
-      Instruction::LocalSet(2),
-      Instruction::LocalGet(0),
+        Instruction::LocalGet(0),
+        Instruction::LocalTee(1),
+        Instruction::LocalSet(2),
+        Instruction::LocalGet(0),
     ];
 
     fn_body.add_instructions(instructions);

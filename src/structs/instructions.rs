@@ -282,8 +282,12 @@ impl Instruction<'_> {
                 write::unsigned(writer, *default as u64)?;
             }
             Instruction::If(v) => writer.write_all(&[(*v).into()])?,
-            Instruction::I32Const(v) => { write::signed(writer, *v as i64)?; },
-            Instruction::I64Const(v) => { write::signed(writer, *v as i64)?; },
+            Instruction::I32Const(v) => {
+                write::signed(writer, *v as i64)?;
+            }
+            Instruction::I64Const(v) => {
+                write::signed(writer, *v as i64)?;
+            }
             Instruction::F32Const(v) => writer.write_all(&v.to_le_bytes())?,
             Instruction::F64Const(v) => writer.write_all(&v.to_le_bytes())?,
 
@@ -293,7 +297,9 @@ impl Instruction<'_> {
             | Instruction::GlobalGet(idx)
             | Instruction::GlobalSet(idx)
             | Instruction::Call(idx)
-            | Instruction::CallIndirect(idx) => { write::unsigned(writer, *idx as u64)?; },
+            | Instruction::CallIndirect(idx) => {
+                write::unsigned(writer, *idx as u64)?;
+            }
 
             Instruction::I32Load(align, offset)
             | Instruction::I64Load(align, offset)
