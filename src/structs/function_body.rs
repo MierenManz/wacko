@@ -27,14 +27,19 @@ impl<'a> FnBody<'a> {
     }
 
     pub fn add_local(&mut self, kind: ValType) {
-        let index = self.locals.len() - 1;
+        if self.locals.is_empty() {
+            self.locals.push((1, kind));
+            return;
+        }
 
+        let index = self.locals.len() - 1;
         if self.locals[index].1 == kind {
             self.locals[index].0 += 1;
             return;
         }
 
-        self.locals.push((0, kind));
+        self.locals.push((1, kind));
+        return;
     }
 
     pub fn add_instruction(&mut self, instruction: Instruction<'a>) {
