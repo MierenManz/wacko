@@ -103,14 +103,12 @@ impl<'a> Module<'a> {
         kind: ExternalKind,
     ) -> u32 {
         self.import_section.add_import(module, external_name, kind);
-        let idx = match kind {
+        match kind {
             ExternalKind::Function(type_def) => self.add_fn_decl(type_def),
             ExternalKind::Global(desc) => self.add_global_descriptor(desc, None),
             ExternalKind::Memory(desc) => self.add_memory_descriptor(desc, None),
             ExternalKind::Table(desc) => self.add_table_descriptor(desc, None),
-        };
-
-        idx
+        }
     }
 
     /// Footgun. Needs to be used after `add_import` otherwise this may generate a corrupt binary
@@ -193,7 +191,7 @@ impl<'a> Module<'a> {
         Ok(())
     }
 
-    pub fn compile_stream(mut self, writer: &mut impl Write) -> Result<usize, Error> {
+    pub fn compile_stream(mut self, writer: &mut impl Write) -> Result<(), Error> {
         if self.optimize {
             self.code_section = self.code_section.optimize();
         }
@@ -202,17 +200,17 @@ impl<'a> Module<'a> {
             self.validate()?;
         }
 
-        let mut written = writer.write(&MAGIC)?;
-        written += self.type_section.compile(writer)?;
-        written += self.import_section.compile(writer)?;
-        written += self.fn_section.compile(writer)?;
-        written += self.table_section.compile(writer)?;
-        written += self.memory_section.compile(writer)?;
-        written += self.global_section.compile(writer)?;
-        written += self.export_section.compile(writer)?;
-        written += self.element_section.compile(writer)?;
-        written += self.code_section.compile(writer)?;
-        written += self.data_section.compile(writer)?;
-        Ok(written)
+        writer.write_all(&MAGIC)?;
+        self.type_section.compile(writer)?;
+        self.import_section.compile(writer)?;
+        self.fn_section.compile(writer)?;
+        self.table_section.compile(writer)?;
+        self.memory_section.compile(writer)?;
+        self.global_section.compile(writer)?;
+        self.export_section.compile(writer)?;
+        self.element_section.compile(writer)?;
+        self.code_section.compile(writer)?;
+        self.data_section.compile(writer)?;
+        Ok(())
     }
 }

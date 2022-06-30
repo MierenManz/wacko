@@ -265,27 +265,27 @@ pub enum Instruction<'a> {
 }
 
 impl Instruction<'_> {
-    pub fn encode(&self, writer: &mut impl Write) -> Result<usize, Error> {
-        let mut written = self.write_opcode(writer)?;
-        written += match self {
-            Instruction::Block(v) | Instruction::Loop(v) => writer.write(&[(*v).into()])?,
+    pub fn encode(&self, writer: &mut impl Write) -> Result<(), Error> {
+        self.write_opcode(writer)?;
+        match self {
+            Instruction::Block(v) | Instruction::Loop(v) => writer.write_all(&[(*v).into()])?,
             Instruction::Br(depth) | Instruction::BrIf(depth) => {
-                write::unsigned(writer, *depth as u64)?
+                write::unsigned(writer, *depth as u64)?;
             }
             Instruction::BrTable(table, default) => {
-                let mut w = write::unsigned(writer, table.len() as u64)?;
+                write::unsigned(writer, table.len() as u64)?;
                 for i in 0..table.len() {
                     let idx = table[i];
-                    w += write::unsigned(writer, idx as u64)?;
+                    write::unsigned(writer, idx as u64)?;
                 }
 
-                w + write::unsigned(writer, *default as u64)?
+                write::unsigned(writer, *default as u64)?;
             }
-            Instruction::If(v) => writer.write(&[(*v).into()])?,
-            Instruction::I32Const(v) => write::signed(writer, *v as i64)?,
-            Instruction::I64Const(v) => write::signed(writer, *v as i64)?,
-            Instruction::F32Const(v) => writer.write(&v.to_le_bytes())?,
-            Instruction::F64Const(v) => writer.write(&v.to_le_bytes())?,
+            Instruction::If(v) => writer.write_all(&[(*v).into()])?,
+            Instruction::I32Const(v) => { write::signed(writer, *v as i64)?; },
+            Instruction::I64Const(v) => { write::signed(writer, *v as i64)?; },
+            Instruction::F32Const(v) => writer.write_all(&v.to_le_bytes())?,
+            Instruction::F64Const(v) => writer.write_all(&v.to_le_bytes())?,
 
             Instruction::LocalGet(idx)
             | Instruction::LocalSet(idx)
@@ -293,7 +293,7 @@ impl Instruction<'_> {
             | Instruction::GlobalGet(idx)
             | Instruction::GlobalSet(idx)
             | Instruction::Call(idx)
-            | Instruction::CallIndirect(idx) => write::unsigned(writer, *idx as u64)?,
+            | Instruction::CallIndirect(idx) => { write::unsigned(writer, *idx as u64)?; },
 
             Instruction::I32Load(align, offset)
             | Instruction::I64Load(align, offset)
@@ -318,15 +318,16 @@ impl Instruction<'_> {
             | Instruction::I64Store8(align, offset)
             | Instruction::I64Store16(align, offset)
             | Instruction::I64Store32(align, offset) => {
-                write::unsigned(writer, *align as u64)? + write::unsigned(writer, *offset as u64)?
+                write::unsigned(writer, *align as u64)?;
+                write::unsigned(writer, *offset as u64)?;
             }
-            _ => 0,
+            _ => {}
         };
 
-        Ok(written)
+        Ok(())
     }
 
-    pub fn write_opcode(self, writer: &mut impl Write) -> Result<usize, Error> {
+    pub fn write_opcode(self, writer: &mut impl Write) -> Result<(), Error> {
         let byte = match self {
             Instruction::Block(_) => 0x02,
             Instruction::Loop(_) => 0x03,
@@ -507,7 +508,7 @@ impl Instruction<'_> {
             Instruction::MemorySize => 0x3F,
             _ => 0xFC,
         };
-        let mut written = writer.write(&[byte])?;
+        writer.write_all(&[byte])?;
         if byte == 0xFC {
             let other_byte = match self {
                 Instruction::I32TruncSatF32S => 0x00,
@@ -520,9 +521,9 @@ impl Instruction<'_> {
                 Instruction::I64TruncSatF64U => 0x07,
                 _ => unreachable!(),
             };
-            written += writer.write(&[other_byte])?;
+            writer.write_all(&[other_byte])?;
         }
 
-        Ok(written)
+        Ok(())
     }
 }

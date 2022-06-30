@@ -19,8 +19,8 @@ impl FunctionSection {
         self.declarations.len() - 1
     }
 
-    pub fn compile(self, writer: &mut impl Write) -> Result<usize, Error> {
-        writer.write(&[Self::id()])?;
+    pub fn compile(self, writer: &mut impl Write) -> Result<(), Error> {
+        writer.write_all(&[Self::id()])?;
         let mut buff = Vec::new();
         write::unsigned(&mut buff, self.declarations.len() as u64)?;
         for x in self.declarations {
@@ -29,7 +29,7 @@ impl FunctionSection {
 
         write::unsigned(writer, buff.len() as u64)?;
         writer.write_all(&buff)?;
-        Ok(buff.len() + 1)
+        Ok(())
     }
 
     fn id() -> u8 {

@@ -14,26 +14,25 @@ pub enum ExternalKind {
 }
 
 impl ExternalKind {
-    pub(crate) fn encode(self, writer: &mut impl Write) -> Result<usize, Error> {
-        let mut written = 0;
-        written += writer.write(&[self.into()])?;
+    pub(crate) fn encode(self, writer: &mut impl Write) -> Result<(), Error> {
+        writer.write_all(&[self.into()])?;
         match self {
             Self::Function(sig_idx) => {
-                written += write::unsigned(writer, sig_idx as u64)?;
+                write::unsigned(writer, sig_idx as u64)?;
             }
             Self::Table(mem_desc) => {
-                written += writer.write(&[ValType::FuncRef.into()])?;
-                written += mem_desc.encode(writer)?;
+                writer.write_all(&[ValType::FuncRef.into()])?;
+                mem_desc.encode(writer)?;
             }
             Self::Memory(mem_desc) => {
-                written += mem_desc.encode(writer)?;
+                mem_desc.encode(writer)?;
             }
             Self::Global(descriptor) => {
-                written += descriptor.encode(writer)?;
+                descriptor.encode(writer)?;
             }
         }
 
-        Ok(written)
+        Ok(())
     }
 }
 

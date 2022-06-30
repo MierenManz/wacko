@@ -64,25 +64,24 @@ impl ImportSection {
         Ok(())
     }
 
-    pub fn compile(self, writer: &mut impl Write) -> Result<usize, Error> {
+    pub fn compile(self, writer: &mut impl Write) -> Result<(), Error> {
         if self.imports.is_empty() {
-            return Ok(0);
+            return Ok(());
         };
-        let mut written = writer.write(&Self::id().to_le_bytes())?;
-        written += write::unsigned(writer, self.imports.len() as u64)?;
+        writer.write_all(&[Self::id()])?;
+        write::unsigned(writer, self.imports.len() as u64)?;
 
         for (module_name, external_name, kind) in self.imports {
-            written += write::unsigned(writer, module_name.len() as u64)?;
-            written += writer.write(module_name.as_bytes())?;
+            write::unsigned(writer, module_name.len() as u64)?;
+            writer.write_all(module_name.as_bytes())?;
 
-            written += write::unsigned(writer, external_name.len() as u64)?;
-            written += writer.write(external_name.as_bytes())?;
+            write::unsigned(writer, external_name.len() as u64)?;
+            writer.write_all(external_name.as_bytes())?;
 
-            written += kind.encode(writer)?;
+            kind.encode(writer)?;
         }
 
-        writer.flush()?;
-        Ok(written)
+        Ok(())
     }
 
     fn id() -> u8 {

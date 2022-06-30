@@ -34,7 +34,6 @@ impl<'a> FnBody<'a> {
         }
 
         self.locals.push((1, kind));
-        return;
     }
 
     pub fn add_instruction(&mut self, instruction: Instruction<'a>) {
@@ -58,7 +57,7 @@ impl<'a> FnBody<'a> {
         write::unsigned(&mut buff, self.locals.len() as u64)?;
         for local in self.locals {
             write::unsigned(&mut buff, local.0 as u64)?;
-            (&mut buff).write(&[local.1.into()])?;
+            (&mut buff).write_all(&[local.1.into()])?;
         }
         self.instructions.push(Instruction::End);
 

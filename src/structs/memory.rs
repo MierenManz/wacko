@@ -10,16 +10,15 @@ pub struct ResizableLimits {
 }
 
 impl ResizableLimits {
-    pub(crate) fn encode(self, writer: &mut impl Write) -> Result<usize, Error> {
-        let mut written = 0;
+    pub(crate) fn encode(self, writer: &mut impl Write) -> Result<(), Error> {
         let flags = if self.maximum.is_some() { 0x01 } else { 0x00 };
-        written += writer.write(&[flags])?;
-        written += write::unsigned(writer, self.minimum as u64)?;
+        writer.write_all(&[flags])?;
+        write::unsigned(writer, self.minimum as u64)?;
 
         if let Some(v) = self.maximum {
-            written += write::unsigned(writer, v as u64)?;
+            write::unsigned(writer, v as u64)?;
         }
-        Ok(written)
+        Ok(())
     }
 
     pub(crate) fn validate(&self) -> Result<(), ValidationError> {

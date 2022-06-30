@@ -47,10 +47,10 @@ impl GlobalDescriptor {
         Self { valtype, mutable }
     }
 
-    pub(crate) fn encode(self, writer: &mut impl Write) -> Result<usize, Error> {
-        let mut written = self.valtype.encode(writer)?;
-        written += writer.write(&[self.mutable as u8])?;
-        Ok(written)
+    pub(crate) fn encode(self, writer: &mut impl Write) -> Result<(), Error> {
+        self.valtype.encode(writer)?;
+        writer.write_all(&[self.mutable as u8])?;
+        Ok(())
     }
 
     pub(crate) fn is_mut(&self) -> bool {

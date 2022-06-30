@@ -21,7 +21,7 @@ impl Table {
 
     /// Push a function index to the table and return it's offset
     pub fn push(&mut self, data: u32) -> usize {
-        self.refs.push(data.into());
+        self.refs.push(data);
         self.refs.len() - 1
     }
 

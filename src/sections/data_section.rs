@@ -16,22 +16,22 @@ impl DataSection {
         self.data.push((memory_idx, offset, data));
     }
 
-    pub fn compile(self, writer: &mut impl Write) -> Result<usize, Error> {
+    pub fn compile(self, writer: &mut impl Write) -> Result<(), Error> {
         if self.data.is_empty() {
-            return Ok(0);
+            return Ok(());
         }
-        let mut written = writer.write(&[Self::id()])?;
-        written += write::unsigned(writer, self.data.len() as u64)?;
+         writer.write_all(&[Self::id()])?;
+        write::unsigned(writer, self.data.len() as u64)?;
 
         for (index, offset, data) in self.data {
-            written += write::unsigned(writer, index as u64)?;
-            written += Instruction::I32Const(offset).encode(writer)?;
-            written += write::unsigned(writer, data.len() as u64)?;
+            write::unsigned(writer, index as u64)?;
+            Instruction::I32Const(offset).encode(writer)?;
+            write::unsigned(writer, data.len() as u64)?;
             writer.write_all(&data)?;
-            written += data.len();
+            data.len();
         }
 
-        Ok(written)
+        Ok(())
     }
 
     pub fn id() -> u8 {

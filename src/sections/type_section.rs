@@ -53,26 +53,25 @@ impl TypeSection {
         Ok(())
     }
 
-    pub fn compile(self, writer: &mut impl Write) -> Result<usize, Error> {
-        let mut written = writer.write(&[Self::id()])?;
+    pub fn compile(self, writer: &mut impl Write) -> Result<(), Error> {
+        writer.write_all(&[Self::id()])?;
         let mut buff = Vec::new();
         write::unsigned(&mut buff, self.definitions.len() as u64)?;
         for (params, result) in self.definitions {
-            (&mut buff).write(&[ValType::Func.into()])?;
+            (&mut buff).write_all(&[ValType::Func.into()])?;
             write::unsigned(&mut buff, params.len() as u64)?;
             for t in params {
-                (&mut buff).write(&[t.into()])?;
+                (&mut buff).write_all(&[t.into()])?;
             }
 
             write::unsigned(&mut buff, result.len() as u64)?;
             for t in result {
-                (&mut buff).write(&[t.into()])?;
+                (&mut buff).write_all(&[t.into()])?;
             }
         }
         write::unsigned(writer, buff.len() as u64)?;
         writer.write_all(&buff)?;
-        written += buff.len();
-        Ok(written)
+        Ok(())
     }
 
     fn id() -> u8 {

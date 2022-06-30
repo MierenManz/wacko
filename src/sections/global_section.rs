@@ -19,18 +19,18 @@ impl GlobalSection {
         self.descriptors.len() - 1
     }
 
-    pub fn compile(self, writer: &mut impl Write) -> Result<usize, Error> {
+    pub fn compile(self, writer: &mut impl Write) -> Result<(), Error> {
         if self.descriptors.is_empty() {
-            return Ok(0);
+            return Ok(());
         }
-        let mut written = writer.write(&[Self::id()])?;
-        written += write::unsigned(writer, self.descriptors.len() as u64)?;
+        writer.write_all(&[Self::id()])?;
+        write::unsigned(writer, self.descriptors.len() as u64)?;
 
         for x in self.descriptors {
-            written += x.encode(writer)?;
+            x.encode(writer)?;
         }
-        writer.flush()?;
-        Ok(written)
+
+        Ok(())
     }
 
     fn id() -> u8 {

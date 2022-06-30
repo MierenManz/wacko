@@ -55,16 +55,16 @@ impl ExportSection {
         Ok(())
     }
 
-    pub fn compile(self, writer: &mut impl Write) -> Result<usize, Error> {
+    pub fn compile(self, writer: &mut impl Write) -> Result<(), Error> {
         if self.exports.is_empty() {
-            return Ok(0);
+            return Ok(());
         }
-        writer.write(&[Self::id()])?;
+        writer.write_all(&[Self::id()])?;
         let mut buff = Vec::new();
         write::unsigned(&mut buff, self.exports.len() as u64)?;
         for (name, kind) in self.exports {
             write::unsigned(&mut buff, name.len() as u64)?;
-            (&mut buff).write(name.as_bytes())?;
+            (&mut buff).write_all(name.as_bytes())?;
             let v = match kind {
                 ExportKind::Function(id) => id,
                 ExportKind::Table(id) => id,
@@ -72,14 +72,14 @@ impl ExportSection {
                 ExportKind::Global(id) => id,
             };
 
-            (&mut buff).write(&[kind.into()])?;
+            (&mut buff).write_all(&[kind.into()])?;
             write::unsigned(&mut buff, v as u64)?;
         }
 
         write::unsigned(writer, buff.len() as u64)?;
         writer.write_all(&buff)?;
 
-        Ok(buff.len() + 1)
+        Ok(())
     }
 
     pub fn count(&self) -> usize {

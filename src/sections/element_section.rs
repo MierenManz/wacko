@@ -27,22 +27,22 @@ impl ElementSection {
         }
     }
 
-    pub fn compile(self, writer: &mut impl Write) -> Result<usize, Error> {
+    pub fn compile(self, writer: &mut impl Write) -> Result<(), Error> {
         if self.table_elements.is_empty() {
-            return Ok(0);
+            return Ok(());
         }
-        let mut written = writer.write(&[Self::id()])?;
-        written += write::unsigned(writer, self.table_elements.len() as u64)?;
+        writer.write_all(&[Self::id()])?;
+        write::unsigned(writer, self.table_elements.len() as u64)?;
         for (table_idx, (offset, elements)) in self.table_elements {
-            written += write::unsigned(writer, table_idx as u64)?;
-            written += Instruction::I32Const(offset).write_opcode(writer)?;
-            written += write::signed(writer, offset as i64)?;
+            write::unsigned(writer, table_idx as u64)?;
+            Instruction::I32Const(offset).write_opcode(writer)?;
+            write::signed(writer, offset as i64)?;
             for idx in elements {
-                written += write::unsigned(writer, idx as u64)?;
+                write::unsigned(writer, idx as u64)?;
             }
         }
 
-        Ok(written)
+        Ok(())
     }
     fn id() -> u8 {
         0x09
