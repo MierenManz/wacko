@@ -45,9 +45,9 @@ impl TypeSection {
                 return Err(ValidationError::ArrayOverflow);
             }
 
-            if returns.is_empty() {
-                return Err(ValidationError::ArrayTooLittleElements);
-            }
+            // if returns.is_empty() {
+            //     return Err(ValidationError::ArrayTooLittleElements);
+            // }
         }
 
         Ok(())

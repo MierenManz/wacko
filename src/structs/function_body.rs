@@ -14,13 +14,8 @@ pub struct FnBody<'a> {
 
 impl<'a> FnBody<'a> {
     pub fn new(arguments: Vec<ValType>, return_type: Vec<ValType>) -> Self {
-        let returns = if return_type.is_empty() {
-            vec![ValType::Void]
-        } else {
-            return_type
-        };
         Self {
-            fn_type: (arguments, returns),
+            fn_type: (arguments, return_type),
             locals: Vec::new(),
             instructions: Vec::new(),
         }
@@ -57,14 +52,15 @@ impl<'a> FnBody<'a> {
         (&self.fn_type.0, &self.fn_type.1)
     }
 
-    pub(crate) fn compile(self, writer: &mut impl Write) -> Result<usize, Error> {
-        let mut buff = Vec::with_capacity(self.locals.len() * 3 + self.instructions.len());
+    pub(crate) fn compile(mut self, writer: &mut impl Write) -> Result<usize, Error> {
+        let mut buff = Vec::new();
 
         write::unsigned(&mut buff, self.locals.len() as u64)?;
         for local in self.locals {
             write::unsigned(&mut buff, local.0 as u64)?;
             (&mut buff).write(&[local.1.into()])?;
         }
+        self.instructions.push(Instruction::End);
 
         for x in self.instructions {
             x.encode(&mut buff)?;
@@ -91,7 +87,6 @@ mod test {
             Instruction::LocalGet(0),
             Instruction::LocalGet(1),
             Instruction::I32Add,
-            Instruction::End,
         ]);
         fn_body.compile(&mut buff).unwrap();
         assert_eq!(buff, vec![0x07, 0x00, 0x20, 0x00, 0x20, 0x01, 0x6A, 0x0B]);
