@@ -22,6 +22,10 @@
     f64.le
     drop
     f64.const 1
+    f64.const 1
+    f64.ge
+    drop
+    f64.const 1
     f64.abs
     f64.neg
     f64.ceil

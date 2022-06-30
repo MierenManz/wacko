@@ -22,6 +22,10 @@
     f32.le
     drop
     f32.const 1
+    f32.const 1
+    f32.ge
+    drop
+    f32.const 1
     f32.abs
     f32.neg
     f32.ceil
