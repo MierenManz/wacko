@@ -71,7 +71,7 @@ impl Memory {
     }
 
     pub(crate) fn inner(&self) -> ResizableLimits {
-        let minimum = if (self.min * 64 * 1024) as usize > self.bytes.len() {
+        let minimum = if (self.min as usize) * 64 * 1024 > self.bytes.len() {
             self.min as u32
         } else {
             (self.bytes.len() as f64 / ((1024 * 64) as f64)).ceil() as u32

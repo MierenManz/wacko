@@ -183,8 +183,11 @@ impl<'a> Module<'a> {
 
     pub fn add_memory(&mut self, memory: Memory, export_name: Option<&'_ str>) -> u32 {
         let mem_idx = self.memory_section.add_descriptor(memory.inner()) as u32;
-        self.data_section
-            .add_data(mem_idx, 0, memory.mem_slice().to_vec());
+
+        let slice = memory.mem_slice();
+        if !slice.is_empty() {
+            self.data_section.add_data(mem_idx, 0, slice.to_vec());
+        }
         if let Some(name) = export_name {
             self.add_export(ExportKind::Memory(mem_idx), name);
         }
@@ -233,7 +236,9 @@ impl<'a> Module<'a> {
         }
 
         writer.write_all(&MAGIC)?;
-        self.type_section.compile(writer)?;
+        if self.type_section.count() > 0 {
+            self.type_section.compile(writer)?;
+        }
         self.import_section.compile(writer)?;
         if self.code_section.count() > 0 {
             self.fn_section.compile(self.code_section.count(), writer)?;
@@ -243,9 +248,7 @@ impl<'a> Module<'a> {
         self.global_section.compile(writer)?;
         self.export_section.compile(writer)?;
         self.element_section.compile(writer)?;
-        if self.code_section.count() > 0 {
-            self.code_section.compile(writer)?;
-        }
+        self.code_section.compile(writer)?;
         self.data_section.compile(writer)?;
         Ok(())
     }

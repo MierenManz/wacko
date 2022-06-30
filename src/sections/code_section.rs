@@ -35,6 +35,10 @@ impl<'a> CodeSection<'a> {
     // }
 
     pub fn compile(self, writer: &mut impl Write) -> Result<(), Error> {
+        if self.code_blocks.is_empty() {
+            return Ok(());
+        }
+
         writer.write_all(&[Self::id()])?;
         let mut buff = Vec::new();
         write::unsigned(&mut buff, self.code_blocks.len() as u64)?;

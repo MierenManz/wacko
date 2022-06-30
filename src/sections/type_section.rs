@@ -1,5 +1,4 @@
 use crate::Error;
-use crate::RequiredSection;
 use crate::ValType;
 use crate::ValidationError;
 use leb128::write;
@@ -31,11 +30,6 @@ impl TypeSection {
     }
 
     pub(crate) fn validate(&self) -> Result<(), ValidationError> {
-        if self.definitions.is_empty() {
-            return Err(ValidationError::SectionMissing(
-                RequiredSection::CodeSection,
-            ));
-        }
         if self.definitions.len() > u32::MAX as usize {
             return Err(ValidationError::ArrayOverflow);
         }
@@ -44,13 +38,13 @@ impl TypeSection {
             if params.len() > u32::MAX as usize || returns.len() > u32::MAX as usize {
                 return Err(ValidationError::ArrayOverflow);
             }
-
-            // if returns.is_empty() {
-            //     return Err(ValidationError::ArrayTooLittleElements);
-            // }
         }
 
         Ok(())
+    }
+
+    pub(crate) fn count(&self) -> usize {
+        self.definitions.len()
     }
 
     pub fn compile(self, writer: &mut impl Write) -> Result<(), Error> {

@@ -1,4 +1,4 @@
 mod functions;
 // mod global;
-// mod mem;
+mod memory;
 // mod table;

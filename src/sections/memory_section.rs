@@ -37,11 +37,14 @@ impl MemorySection {
             return Ok(());
         }
         writer.write_all(&[Self::id()])?;
-        write::unsigned(writer, self.descriptors.len() as u64)?;
+        let mut buff = Vec::new();
+        write::unsigned(&mut buff, self.descriptors.len() as u64)?;
 
         for x in self.descriptors {
-            x.encode(writer)?;
+            x.encode(&mut buff)?;
         }
+        write::unsigned(writer, buff.len() as u64)?;
+        writer.write_all(&buff)?;
 
         Ok(())
     }

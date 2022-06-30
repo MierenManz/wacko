@@ -327,6 +327,10 @@ impl Instruction<'_> {
                 write::unsigned(writer, *align as u64)?;
                 write::unsigned(writer, *offset as u64)?;
             }
+
+            Instruction::MemoryGrow | Instruction::MemorySize => {
+                write::unsigned(writer, 0)?;
+            }
             _ => {}
         };
 
