@@ -11,8 +11,7 @@ env:
 
 jobs:
   test:
-    strategy:
-      runs-on: [ubuntu-latest, windows-latest, macosx-latest]
+    runs-on: [ubuntu-latest, windows-latest, macosx-latest]
 
     steps:
     - uses: actions/checkout@v3
@@ -20,8 +19,7 @@ jobs:
       run: cargo test --verbose --all-targets
 
   release_build:
-    strategy:
-      runs-on: [ubuntu-latest, windows-latest, macosx-latest]
+    runs-on: [ubuntu-latest, windows-latest, macosx-latest]
 
     steps:
     - uses: actions/checkout@v3
