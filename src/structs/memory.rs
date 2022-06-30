@@ -40,9 +40,11 @@ pub struct Memory {
 }
 
 impl Memory {
-    /// `min` is minimum "heap" size in pages (this is the amount of pages that don't have static data in them)
-    ///
-    /// `max` is the maximum "heap" size in pages if the wasm memory is allowed to grow
+    /// `min` is the minimum amount of pages that are allocated at initialization
+    /// 
+    /// Initial page count may be higher than `min` if the initialized data is more than the pagecount allows for
+    /// 
+    /// `max` is maximum amount of pages available at runtime
     pub fn new(min: u16, max: Option<u16>) -> Self {
         Self {
             min,
@@ -69,8 +71,13 @@ impl Memory {
     }
 
     pub(crate) fn inner(&self) -> ResizableLimits {
+        let minimum = if (self.min * 64 * 1024) as usize > self.bytes.len() {
+            self.min as u32
+        } else {
+            (self.bytes.len() as f64 / ((1024 * 64) as f64)).ceil() as u32
+        };
         ResizableLimits {
-            minimum: self.min as u32,
+            minimum: minimum,
             maximum: self.max.map(|x| x as u32),
         }
     }

@@ -8,9 +8,11 @@ pub struct Table {
 }
 
 impl Table {
-    /// `min` is minimum "heap" size in pages (this is the amount of pages that don't have static data in them)
-    ///
-    /// `max` is the maximum "heap" size in pages if the wasm memory is allowed to grow
+    /// `min` is the minimum amount of refs that are allocated at initialization
+    /// 
+    /// Initial page count may be higher than `min` if the initialized data is more than the pagecount allows for
+    /// 
+    /// `max` is maximum amount of refs available at runtime
     pub fn new(min: u32, max: Option<u32>) -> Self {
         Self {
             min,
@@ -30,8 +32,13 @@ impl Table {
     }
 
     pub(crate) fn inner(&self) -> ResizableLimits {
+        let minimum = if self.min > self.refs.len() as u32 {
+            self.min
+        } else {
+            self.refs.len() as u32
+        };
         ResizableLimits {
-            minimum: self.min,
+            minimum,
             maximum: self.max,
         }
     }
