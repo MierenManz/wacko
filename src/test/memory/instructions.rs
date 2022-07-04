@@ -4,7 +4,7 @@ use crate::*;
 fn instructions_test() {
     let mut module = Module::new(true);
     let mem = Memory::new(1, Some(1));
-    module.add_memory(mem, None);
+    module.add_memory(mem, Some("mem"));
     let mut fn_body = FnBody::new(vec![], vec![]);
 
     fn_body.add_instructions(vec![

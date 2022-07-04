@@ -7,4 +7,6 @@
         drop
         drop   
     )
+
+    (export "mem" (memory 0))
 )
