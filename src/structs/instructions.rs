@@ -187,53 +187,98 @@ pub enum Instruction<'a> {
     I64Extend32S,
 
     /// `I32Load(align, offset)`
+    ///
+    /// `align` needs to be a power of two and smaller or equal to the natural alignment
     I32Load(u32, u32),
     /// `I64Load(align, offset)`
+    /// `align` needs to be a power of two and smaller or equal to the natural alignment
     I64Load(u32, u32),
     /// `F32Load(align, offset)`
+    ///
+    /// `align` needs to be a power of two and smaller or equal to the natural alignment
     F32Load(u32, u32),
     /// `F64Load(align, offset)`
+    ///
+    /// `align` needs to be a power of two and smaller or equal to the natural alignment
     F64Load(u32, u32),
     /// `I32Store(align, offset)`
+    ///
+    /// `align` needs to be a power of two and smaller or equal to the natural alignment
     I32Store(u32, u32),
     /// `I64Store(align, offset)`
+    ///
+    /// `align` needs to be a power of two and smaller or equal to the natural alignment
     I64Store(u32, u32),
     /// `F32Store(align, offset)`
+    ///
+    /// `align` needs to be a power of two and smaller or equal to the natural alignment
     F32Store(u32, u32),
     /// `F64Store(align, offset)`
+    ///
+    /// `align` needs to be a power of two and smaller or equal to the natural alignment
     F64Store(u32, u32),
 
     /// `I32Load8S(align, offset)`
+    ///
+    /// `align` needs to be a power of two and smaller or equal to the natural alignment
     I32Load8S(u32, u32),
     /// `I32Load16S(align, offset)`
+    ///
+    /// `align` needs to be a power of two and smaller or equal to the natural alignment
     I32Load16S(u32, u32),
     /// `I64Load8S(align, offset)`
+    ///
+    /// `align` needs to be a power of two and smaller or equal to the natural alignment
     I64Load8S(u32, u32),
     /// `I64Load16S(align, offset)`
+    ///
+    /// `align` needs to be a power of two and smaller or equal to the natural alignment
     I64Load16S(u32, u32),
     /// `I64Load32S(align, offset)`
+    ///
+    /// `align` needs to be a power of two and smaller or equal to the natural alignment
     I64Load32S(u32, u32),
 
     /// `I32Load8U(align, offset)`
+    ///
+    /// `align` needs to be a power of two and smaller or equal to the natural alignment
     I32Load8U(u32, u32),
     /// `I32Load16U(align, offset)`
+    ///
+    /// `align` needs to be a power of two and smaller or equal to the natural alignment
     I32Load16U(u32, u32),
     /// `I64Load8U(align, offset)`
+    ///
+    /// `align` needs to be a power of two and smaller or equal to the natural alignment
     I64Load8U(u32, u32),
     /// `I64Load16U(align, offset)`
+    ///
+    /// `align` needs to be a power of two and smaller or equal to the natural alignment
     I64Load16U(u32, u32),
     /// `I64Load32U(align, offset)`
+    ///
+    /// `align` needs to be a power of two and smaller or equal to the natural alignment
     I64Load32U(u32, u32),
 
     /// `I32Store8(align, offset)`
+    ///
+    /// `align` needs to be a power of two and smaller or equal to the natural alignment
     I32Store8(u32, u32),
     /// `I32Store16(align, offset)`
+    ///
+    /// `align` needs to be a power of two and smaller or equal to the natural alignment
     I32Store16(u32, u32),
     /// `I64Store8(align, offset)`
+    ///
+    /// `align` needs to be a power of two and smaller or equal to the natural alignment
     I64Store8(u32, u32),
     /// `I64Store16(align, offset)`
+    ///
+    /// `align` needs to be a power of two and smaller or equal to the natural alignment
     I64Store16(u32, u32),
     /// `I64Store32(align, offset)`
+    ///
+    /// `align` needs to be a power of two and smaller or equal to the natural alignment
     I64Store32(u32, u32),
 
     MemoryGrow,
@@ -324,7 +369,8 @@ impl Instruction<'_> {
             | Instruction::I64Store8(align, offset)
             | Instruction::I64Store16(align, offset)
             | Instruction::I64Store32(align, offset) => {
-                write::unsigned(writer, *align as u64)?;
+                let calc_align = (*align as f64).log2().floor() as u64;
+                write::unsigned(writer, calc_align)?;
                 write::unsigned(writer, *offset as u64)?;
             }
 
