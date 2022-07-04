@@ -5,7 +5,7 @@
         memory.grow
         memory.size
         drop
-        drop   
+        drop
     )
 
     (export "mem" (memory 0))
