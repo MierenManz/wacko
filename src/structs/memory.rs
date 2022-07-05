@@ -59,15 +59,16 @@ impl Memory {
         self.bytes.len() - 1
     }
     /// Push a slice of static data and return the wasm pointer of it
-    pub fn extend_from_slice(&mut self, slice: &[u8]) -> usize {
-        self.bytes.extend(slice);
+    pub fn push_slice(&mut self, slice: &[u8]) -> usize {
+        self.bytes.extend_from_slice(slice);
+
         self.bytes.len() - slice.len()
     }
 
     /// Push the content of a `IntoIterator<Item = u8>` and return the wasm pointer of it
-    pub fn extend_from_iter<I: IntoIterator<Item = u8>>(&mut self, data: I) -> usize {
+    pub fn push_iter<I: IntoIterator<Item = u8>>(&mut self, data: I) -> usize {
         let iter: Vec<u8> = data.into_iter().collect();
-        self.extend_from_slice(&iter)
+        self.push_slice(&iter)
     }
 
     pub(crate) fn inner(&self) -> ResizableLimits {
