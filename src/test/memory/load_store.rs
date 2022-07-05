@@ -210,3 +210,80 @@ fn load_store_integers() {
     let reference = std::fs::read("./testdata/memory/load_store_int.wasm").unwrap();
     assert_eq!(reference, output);
 }
+
+#[test]
+fn load_store_floats() {
+    let mut module = Module::new(true);
+    let mem = Memory::new(1, Some(1));
+    module.add_memory(mem, None);
+
+    let mut fn_body0 = FnBody::new(vec![], vec![]);
+    fn_body0.add_instructions(vec![
+        Instruction::I32Const(0),
+        Instruction::F32Load(4, 0),
+        Instruction::Drop,
+        Instruction::I32Const(0),
+        Instruction::F32Load(1, 0),
+        Instruction::Drop,
+        Instruction::I32Const(0),
+        Instruction::F32Load(2, 0),
+        Instruction::Drop,
+        Instruction::I32Const(0),
+        Instruction::F32Load(4, 2),
+        Instruction::Drop,
+        // Spacing
+        Instruction::I32Const(0),
+        Instruction::F32Const(0f32),
+        Instruction::F32Store(4, 0),
+        Instruction::I32Const(0),
+        Instruction::F32Const(0f32),
+        Instruction::F32Store(1, 0),
+        Instruction::I32Const(0),
+        Instruction::F32Const(0f32),
+        Instruction::F32Store(2, 0),
+        Instruction::I32Const(0),
+        Instruction::F32Const(0f32),
+        Instruction::F32Store(4, 2),
+    ]);
+
+    let mut fn_body1 = FnBody::new(vec![], vec![]);
+    fn_body1.add_instructions(vec![
+        Instruction::I32Const(0),
+        Instruction::F64Load(8, 0),
+        Instruction::Drop,
+        Instruction::I32Const(0),
+        Instruction::F64Load(1, 0),
+        Instruction::Drop,
+        Instruction::I32Const(0),
+        Instruction::F64Load(2, 0),
+        Instruction::Drop,
+        Instruction::I32Const(0),
+        Instruction::F64Load(4, 0),
+        Instruction::Drop,
+        Instruction::I32Const(0),
+        Instruction::F64Load(8, 2),
+        Instruction::Drop,
+        // Spacing
+        Instruction::I32Const(0),
+        Instruction::F64Const(0f64),
+        Instruction::F64Store(8, 0),
+        Instruction::I32Const(0),
+        Instruction::F64Const(0f64),
+        Instruction::F64Store(1, 0),
+        Instruction::I32Const(0),
+        Instruction::F64Const(0f64),
+        Instruction::F64Store(2, 0),
+        Instruction::I32Const(0),
+        Instruction::F64Const(0f64),
+        Instruction::F64Store(4, 0),
+        Instruction::I32Const(0),
+        Instruction::F64Const(0f64),
+        Instruction::F64Store(8, 2),
+    ]);
+
+    module.add_function(fn_body0, None);
+    module.add_function(fn_body1, None);
+    let output = module.compile().unwrap();
+    let reference = std::fs::read("./testdata/memory/load_store_float.wasm").unwrap();
+    assert_eq!(reference, output);
+}
