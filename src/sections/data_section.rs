@@ -20,16 +20,21 @@ impl DataSection {
         if self.data.is_empty() {
             return Ok(());
         }
-        writer.write_all(&[Self::id()])?;
-        write::unsigned(writer, self.data.len() as u64)?;
+        let mut buff: Vec<u8> = Vec::new();
 
-        for (index, offset, data) in self.data {
-            write::unsigned(writer, index as u64)?;
-            Instruction::I32Const(offset).encode(writer)?;
-            write::unsigned(writer, data.len() as u64)?;
-            writer.write_all(&data)?;
-            data.len();
+        writer.write_all(&[Self::id()])?;
+        write::unsigned(&mut buff, self.data.len() as u64)?;
+
+        for (mem_idx, offset, slice) in self.data {
+            write::unsigned(&mut buff, mem_idx as u64)?;
+            Instruction::I32Const(offset).encode(&mut buff)?;
+            (&mut buff).write_all(&[Self::id()])?;
+            write::unsigned(&mut buff, slice.len() as u64)?;
+            (&mut buff).write_all(&slice)?;
         }
+
+        write::unsigned(writer, buff.len() as u64)?;
+        writer.write_all(&buff)?;
 
         Ok(())
     }
