@@ -7,7 +7,7 @@ fn static_data() {
     let ptr1 = memory.push_slice("Hello World!".as_bytes());
     assert_eq!(ptr1, 0);
     let ptr2 = memory.push_slice("Hello Andreu :D".as_bytes());
-    // assert_eq!(ptr2, 12);
+    assert_eq!(ptr2, 12);
 
     module.add_memory(memory, None);
     let output = module.compile().unwrap();
