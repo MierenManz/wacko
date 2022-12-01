@@ -23,10 +23,13 @@ pub enum ValidationError {
     InvalidMemorySetting,
     SectionMissing(RequiredSection),
     InvalidType,
+    StackNotEmpty,
+    InvalidBranch,
     TooManyFnBodies,
     TooManyFnDeclarations,
     MutatableImport,
     Duplicate,
+    InvalidEndStatement,
 }
 
 impl From<ValidationError> for Error {

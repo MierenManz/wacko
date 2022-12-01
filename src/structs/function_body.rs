@@ -1,10 +1,12 @@
+use crate::validator;
 use crate::Error;
 use crate::Instruction;
 use crate::ValType;
+use crate::ValidationError;
 use leb128::write;
 use std::io::Write;
 
-#[derive(Clone)]
+#[derive(Default, Clone)]
 pub struct FnBody<'a> {
     fn_type: (Vec<ValType>, Vec<ValType>),
     /// `Vec<(count, ValType)>`
@@ -71,6 +73,66 @@ impl<'a> FnBody<'a> {
     }
 
     pub(crate) fn optimize(&mut self) {}
+
+    pub(crate) fn validate(
+        &self,
+        validator: &mut validator::Validator,
+    ) -> Result<(), ValidationError> {
+        let mut br_return_types = Vec::new();
+        for i in 0..self.instructions.len() {
+            let instruction = self.instructions[i];
+            match instruction {
+                Instruction::Block(v) | Instruction::Loop(v) => {
+                    // we go into a loop or block. So we increase depth by 1
+                    validator.increase_depth(1);
+                    // Add the type we need for the branch call later
+                    br_return_types.push(v);
+                }
+                Instruction::Br(depth) | Instruction::BrIf(depth) => {
+                    // check if branch is valid
+                    if validator.depth() <= depth as usize {
+                        return Err(ValidationError::InvalidBranch);
+                    }
+                    validator.decrease_depth(depth as usize);
+                    let expected = br_return_types[br_return_types.len() - 1 - depth as usize];
+                    validator.pop(expected)?;
+                    if expected != ValType::Void {
+                        validator.push(expected);
+                    }
+                }
+                Instruction::BrTable(table, fallback) => {
+                    // Check if fallback is valid
+                    if validator.depth() <= fallback as usize {
+                        return Err(ValidationError::InvalidBranch);
+                    }
+                    validator.decrease_depth(fallback as usize);
+                    let expected = br_return_types[br_return_types.len() - fallback as usize];
+                    validator.pop(expected)?;
+                    if expected != ValType::Void {
+                        validator.push(expected);
+                    }
+                    validator.increase_depth(fallback as usize);
+
+                    // Check if table is valid
+                    for depth in table {
+                        let branch_depth = *depth as usize;
+                        if validator.depth() <= branch_depth {
+                            return Err(ValidationError::InvalidBranch);
+                        }
+                        validator.decrease_depth(branch_depth);
+                        let expected = br_return_types[br_return_types.len() - branch_depth];
+                        validator.pop(expected)?;
+                        if expected != ValType::Void {
+                            validator.push(expected);
+                        }
+                        validator.increase_depth(branch_depth);
+                    }
+                }
+                _ => {}
+            }
+        }
+        Ok(())
+    }
 }
 
 #[cfg(test)]

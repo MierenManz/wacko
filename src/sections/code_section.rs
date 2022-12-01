@@ -1,9 +1,11 @@
+use crate::validator::Validator;
 use crate::Error;
 use crate::FnBody;
-// use crate::ValidationError;
+use crate::ValidationError;
 use leb128::write;
 use std::io::Write;
 
+#[derive(Default)]
 pub struct CodeSection<'a> {
     code_blocks: Vec<FnBody<'a>>,
 }
@@ -30,9 +32,6 @@ impl<'a> CodeSection<'a> {
             code_blocks: bodies,
         }
     }
-    // pub fn validate(&self) -> Result<(), ValidationError> {
-    //     Ok(())
-    // }
 
     pub fn compile(self, writer: &mut impl Write) -> Result<(), Error> {
         if self.code_blocks.is_empty() {
@@ -55,13 +54,20 @@ impl<'a> CodeSection<'a> {
         self.code_blocks.len()
     }
 
+    pub(crate) fn validate(&self) -> Result<(), ValidationError> {
+        for x in &self.code_blocks {
+            let mut validator = Validator::new();
+            x.validate(&mut validator)?;
+
+            if !validator.is_empty() {
+                return Err(ValidationError::StackNotEmpty);
+            }
+        }
+
+        Ok(())
+    }
+
     fn id() -> u8 {
         0x0A
-    }
-}
-
-impl Default for CodeSection<'_> {
-    fn default() -> Self {
-        Self::new()
     }
 }

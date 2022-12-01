@@ -221,8 +221,7 @@ impl<'a> Module<'a> {
         }
 
         self.type_section.validate()?;
-        // Will be implemented later
-        // self.code_section.validate()?;
+        self.code_section.validate()?;
         Ok(())
     }
 

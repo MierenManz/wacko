@@ -2,6 +2,7 @@ mod errors;
 mod module;
 mod sections;
 mod structs;
+mod validator;
 #[cfg(test)]
 mod test;
 pub use errors::*;
