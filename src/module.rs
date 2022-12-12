@@ -16,7 +16,6 @@ use crate::ResizableLimits;
 use crate::Table;
 use crate::TableSection;
 use crate::TypeSection;
-use crate::ValType;
 use crate::ValidationError;
 use std::io::Write;
 
@@ -45,14 +44,6 @@ impl<'a> Module<'a> {
         s
     }
 
-    pub(crate) fn add_type<T: Into<Vec<ValType>>>(&mut self, params: T, return_type: T) -> usize {
-        self.type_section.add_type_def(params, return_type)
-    }
-
-    pub(crate) fn add_fn_decl(&mut self, type_def: u32) -> u32 {
-        self.fn_section.add_fn_decl(type_def) as u32
-    }
-
     pub(crate) fn add_export(&mut self, export_kind: ExportKind, export_name: &str) -> u32 {
         self.export_section.add_export(export_kind, export_name) as u32
     }
@@ -64,7 +55,7 @@ impl<'a> Module<'a> {
     ) -> u32 {
         let mem_index = self.memory_section.add_descriptor(descriptor) as u32;
         if let Some(name) = export_name {
-            self.add_export(ExportKind::Memory(mem_index), name);
+            self.export_section.add_export(ExportKind::Memory(mem_index), name);
         }
 
         mem_index
@@ -77,7 +68,7 @@ impl<'a> Module<'a> {
     ) -> u32 {
         let table_index = self.table_section.add_descriptor(descriptor) as u32;
         if let Some(name) = export_name {
-            self.add_export(ExportKind::Table(table_index), name);
+            self.export_section.add_export(ExportKind::Table(table_index), name);
         }
 
         table_index
@@ -91,7 +82,7 @@ impl<'a> Module<'a> {
     ) -> u32 {
         let (params, return_type) = body.get_fn_type();
         let type_idx = self.type_section.add_type_def(params, return_type) as u32;
-        let function_idx = self.add_fn_decl(type_idx);
+        let function_idx = self.fn_section.add_fn_decl(type_idx) as u32;
         self.import_section
             .add_import(module, external, ExternalKind::Function(function_idx));
 
@@ -134,10 +125,10 @@ impl<'a> Module<'a> {
     /// Footgun. Needs to be used after `add_import` otherwise this may generate a corrupt binary
     pub fn add_function(&mut self, fn_body: FnBody<'a>, export_name: Option<&'_ str>) -> u32 {
         let (params, return_type) = fn_body.get_fn_type();
-        let type_id = self.add_type(params, return_type) as u32;
-        let fn_index = self.add_fn_decl(type_id) as u32;
+        let type_id = self.type_section.add_type_def(params, return_type) as u32;
+        let fn_index = self.fn_section.add_fn_decl(type_id) as u32;
         if let Some(name) = export_name {
-            self.add_export(ExportKind::Function(fn_index), name);
+            self.export_section.add_export(ExportKind::Function(fn_index), name);
         }
 
         self.code_section.add_fn_body(fn_body);
@@ -152,7 +143,7 @@ impl<'a> Module<'a> {
     ) -> u32 {
         let global_index = self.global_section.add_descriptor(descriptor) as u32;
         if let Some(name) = export_name {
-            self.add_export(ExportKind::Global(global_index), name);
+            self.export_section.add_export(ExportKind::Global(global_index), name);
         }
 
         global_index
@@ -163,7 +154,7 @@ impl<'a> Module<'a> {
         self.element_section
             .add_elements(table_idx, 0, table.refs().to_vec());
         if let Some(name) = export_name {
-            self.add_export(ExportKind::Table(table_idx), name);
+            self.export_section.add_export(ExportKind::Table(table_idx), name);
         }
 
         table_idx
@@ -177,7 +168,7 @@ impl<'a> Module<'a> {
             self.data_section.add_data(mem_idx, 0, slice.to_vec());
         }
         if let Some(name) = export_name {
-            self.add_export(ExportKind::Memory(mem_idx), name);
+            self.export_section.add_export(ExportKind::Memory(mem_idx), name);
         }
 
         mem_idx
