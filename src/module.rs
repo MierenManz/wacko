@@ -22,6 +22,7 @@ use std::io::Write;
 
 const MAGIC: [u8; 8] = *b"\0asm\x01\0\0\0";
 
+#[derive(Default)]
 pub struct Module<'a> {
     optimize: bool,
     validate: bool,
@@ -39,22 +40,9 @@ pub struct Module<'a> {
 
 impl<'a> Module<'a> {
     pub fn new(validate: bool) -> Self {
-        Self {
-            // Will be implemented later
-            optimize: false,
-            validate,
-            type_section: Default::default(),
-            fn_section: Default::default(),
-            code_section: Default::default(),
-            // All of these are optional technically
-            import_section: Default::default(),
-            table_section: Default::default(),
-            memory_section: Default::default(),
-            global_section: Default::default(),
-            export_section: Default::default(),
-            element_section: Default::default(),
-            data_section: Default::default(),
-        }
+        let mut s = Self::default();
+        s.validate = validate;
+        s
     }
 
     pub(crate) fn add_type<T: Into<Vec<ValType>>>(&mut self, params: T, return_type: T) -> usize {

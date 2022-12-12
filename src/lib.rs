@@ -2,9 +2,9 @@ mod errors;
 mod module;
 mod sections;
 mod structs;
-mod validator;
 #[cfg(test)]
 mod test;
+mod validator;
 pub use errors::*;
 pub use module::Module;
 pub(crate) use sections::*;

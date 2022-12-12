@@ -3,14 +3,14 @@ use crate::ValidationError;
 
 pub struct Validator {
     depth: usize,
-    stack: Vec<ValType>
+    stack: Vec<ValType>,
 }
 
 impl Validator {
     pub fn new() -> Self {
         Self {
             depth: 1,
-            stack: Vec::new()
+            stack: Vec::new(),
         }
     }
 
@@ -33,7 +33,7 @@ impl Validator {
         if expect == ValType::Void && self.stack.is_empty() {
             return Ok(());
         }
-        
+
         if expect != self.stack.pop().unwrap() {
             return Err(ValidationError::InvalidType);
         }
