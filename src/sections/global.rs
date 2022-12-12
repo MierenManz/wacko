@@ -3,17 +3,12 @@ use crate::GlobalDescriptor;
 use leb128::write;
 use std::io::Write;
 
+#[derive(Default)]
 pub struct GlobalSection {
     descriptors: Vec<GlobalDescriptor>,
 }
 
 impl GlobalSection {
-    pub fn new() -> Self {
-        Self {
-            descriptors: Vec::new(),
-        }
-    }
-
     pub fn add_descriptor(&mut self, descriptor: GlobalDescriptor) -> usize {
         self.descriptors.push(descriptor);
         self.descriptors.len() - 1
@@ -35,11 +30,5 @@ impl GlobalSection {
 
     fn id() -> u8 {
         0x06
-    }
-}
-
-impl Default for GlobalSection {
-    fn default() -> Self {
-        Self::new()
     }
 }

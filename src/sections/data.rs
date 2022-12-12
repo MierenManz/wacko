@@ -3,15 +3,12 @@ use crate::Instruction;
 use leb128::write;
 use std::io::Write;
 
+#[derive(Default)]
 pub struct DataSection {
     data: Vec<(u32, i32, Vec<u8>)>,
 }
 
 impl DataSection {
-    pub fn new() -> Self {
-        Self { data: Vec::new() }
-    }
-
     pub fn add_data(&mut self, memory_idx: u32, offset: i32, data: Vec<u8>) {
         self.data.push((memory_idx, offset, data));
     }
@@ -41,11 +38,5 @@ impl DataSection {
 
     pub fn id() -> u8 {
         0x0B
-    }
-}
-
-impl Default for DataSection {
-    fn default() -> Self {
-        Self::new()
     }
 }

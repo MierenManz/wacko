@@ -1,21 +1,15 @@
 use crate::Error;
 use crate::ResizableLimits;
-use crate::ValType;
 use crate::ValidationError;
 use leb128::write;
 use std::io::Write;
 
-pub struct TableSection {
+#[derive(Default)]
+pub struct MemorySection {
     descriptors: Vec<ResizableLimits>,
 }
 
-impl TableSection {
-    pub fn new() -> Self {
-        Self {
-            descriptors: Vec::new(),
-        }
-    }
-
+impl MemorySection {
     pub fn add_descriptor(&mut self, descriptor: ResizableLimits) -> usize {
         self.descriptors.push(descriptor);
         self.descriptors.len() - 1
@@ -29,6 +23,7 @@ impl TableSection {
         for x in &self.descriptors {
             x.validate()?;
         }
+
         Ok(())
     }
 
@@ -37,23 +32,19 @@ impl TableSection {
             return Ok(());
         }
         writer.write_all(&[Self::id()])?;
-        write::unsigned(writer, self.descriptors.len() as u64)?;
+        let mut buff = Vec::new();
+        write::unsigned(&mut buff, self.descriptors.len() as u64)?;
 
         for x in self.descriptors {
-            writer.write_all(&[ValType::FuncRef.into()])?;
-            x.encode(writer)?;
+            x.encode(&mut buff)?;
         }
+        write::unsigned(writer, buff.len() as u64)?;
+        writer.write_all(&buff)?;
 
         Ok(())
     }
 
     fn id() -> u8 {
-        0x04
-    }
-}
-
-impl Default for TableSection {
-    fn default() -> Self {
-        Self::new()
+        0x05
     }
 }

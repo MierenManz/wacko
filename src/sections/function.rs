@@ -3,17 +3,12 @@ use leb128::write;
 use std::io::Write;
 
 /// Editor Note: This struct relies ony on external validation.
+#[derive(Default)]
 pub struct FunctionSection {
     declarations: Vec<u32>,
 }
 
 impl FunctionSection {
-    pub fn new() -> Self {
-        Self {
-            declarations: Vec::new(),
-        }
-    }
-
     pub fn add_fn_decl(&mut self, type_index: u32) -> usize {
         self.declarations.push(type_index);
         self.declarations.len() - 1
@@ -34,11 +29,5 @@ impl FunctionSection {
 
     fn id() -> u8 {
         0x03
-    }
-}
-
-impl Default for FunctionSection {
-    fn default() -> Self {
-        Self::new()
     }
 }

@@ -4,18 +4,13 @@ use leb128::write;
 use std::collections::HashMap;
 use std::io::Write;
 
+#[derive(Default)]
 pub struct ElementSection {
     /// `HashMap<table_index, (offset, Vec<function_id>)>`
     table_elements: HashMap<u32, (i32, Vec<u32>)>,
 }
 
 impl ElementSection {
-    pub fn new() -> Self {
-        Self {
-            table_elements: HashMap::new(),
-        }
-    }
-
     pub fn add_elements(&mut self, table: u32, element_offset: i32, elements: Vec<u32>) {
         if self.table_elements.contains_key(&table) {
             let (offset, mut elems) = self.table_elements.remove(&table).unwrap();
@@ -46,11 +41,5 @@ impl ElementSection {
     }
     fn id() -> u8 {
         0x09
-    }
-}
-
-impl Default for ElementSection {
-    fn default() -> Self {
-        Self::new()
     }
 }

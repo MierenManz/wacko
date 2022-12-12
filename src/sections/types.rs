@@ -4,18 +4,12 @@ use crate::ValidationError;
 use leb128::write;
 use std::io::Write;
 
-#[derive(Debug)]
+#[derive(Debug, Default)]
 pub struct TypeSection {
     definitions: Vec<(Vec<ValType>, Vec<ValType>)>,
 }
 
 impl TypeSection {
-    pub fn new() -> Self {
-        Self {
-            definitions: Vec::new(),
-        }
-    }
-
     pub fn add_type_def<T: Into<Vec<ValType>>>(&mut self, params: T, return_type: T) -> usize {
         let new_definition = (params.into(), return_type.into());
         for i in 0..self.definitions.len() {
@@ -70,11 +64,5 @@ impl TypeSection {
 
     fn id() -> u8 {
         0x01
-    }
-}
-
-impl Default for TypeSection {
-    fn default() -> Self {
-        Self::new()
     }
 }

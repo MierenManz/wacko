@@ -11,12 +11,6 @@ pub struct CodeSection<'a> {
 }
 
 impl<'a> CodeSection<'a> {
-    pub fn new() -> Self {
-        Self {
-            code_blocks: Vec::new(),
-        }
-    }
-
     pub fn add_fn_body(&mut self, code_block: FnBody<'a>) {
         self.code_blocks.push(code_block);
     }

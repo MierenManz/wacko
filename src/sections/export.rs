@@ -22,17 +22,12 @@ impl From<ExportKind> for u8 {
     }
 }
 
+#[derive(Default)]
 pub struct ExportSection {
     exports: Vec<(String, ExportKind)>,
 }
 
 impl ExportSection {
-    pub fn new() -> Self {
-        Self {
-            exports: Vec::new(),
-        }
-    }
-
     pub fn add_export(&mut self, export_kind: ExportKind, export_name: &str) -> usize {
         self.exports.push((export_name.to_string(), export_kind));
 
@@ -88,11 +83,5 @@ impl ExportSection {
 
     fn id() -> u8 {
         0x07
-    }
-}
-
-impl Default for ExportSection {
-    fn default() -> Self {
-        Self::new()
     }
 }

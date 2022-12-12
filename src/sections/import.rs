@@ -4,17 +4,12 @@ use crate::ValidationError;
 use leb128::write;
 use std::io::Write;
 
+#[derive(Default)]
 pub struct ImportSection {
     imports: Vec<(String, String, ExternalKind)>,
 }
 
 impl ImportSection {
-    pub fn new() -> Self {
-        Self {
-            imports: Vec::new(),
-        }
-    }
-
     pub fn add_import<T: Into<String>>(
         &mut self,
         module_name: T,
@@ -88,11 +83,5 @@ impl ImportSection {
 
     fn id() -> u8 {
         0x02
-    }
-}
-
-impl Default for ImportSection {
-    fn default() -> Self {
-        Self::new()
     }
 }
