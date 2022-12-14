@@ -1,233 +1,77 @@
-use crate::CodeSection;
-use crate::DataSection;
-use crate::ElementSection;
-use crate::Error;
-use crate::ExportKind;
-use crate::ExportSection;
-use crate::ExternalKind;
-use crate::FnBody;
-use crate::FunctionSection;
-use crate::GlobalDescriptor;
-use crate::GlobalSection;
-use crate::ImportSection;
-use crate::Memory;
-use crate::MemorySection;
-use crate::ResizableLimits;
-use crate::Table;
-use crate::TableSection;
-use crate::TypeSection;
-use crate::ValidationError;
-use std::io::Write;
+use crate::components::Func;
+use crate::components::Global;
+use crate::components::Import;
+use crate::components::ImportKind;
+use crate::components::Memory;
+use crate::components::Table;
+use crate::components::Type;
+use crate::components::Export;
+use crate::indices::FnIndex;
+use crate::indices::MemoryIndex;
+use crate::indices::TableIndex;
+use crate::indices::TypeIndex;
+use std::rc::Rc;
+use std::cell::Cell;
 
-const MAGIC: [u8; 8] = *b"\0asm\x01\0\0\0";
-
-#[derive(Default)]
+#[derive(Debug)]
 pub struct Module<'a> {
-    optimize: bool,
-    validate: bool,
-    type_section: TypeSection,
-    fn_section: FunctionSection,
-    code_section: CodeSection<'a>,
-    import_section: ImportSection,
-    table_section: TableSection,
-    memory_section: MemorySection,
-    global_section: GlobalSection,
-    export_section: ExportSection,
-    element_section: ElementSection,
-    data_section: DataSection,
+    pub(crate) types: Vec<Type>,
+    pub(crate) imports: Vec<Import>,
+    // /// Includes code section
+    pub(crate) funcs: Vec<Func<'a>>,
+    // /// Includes element section
+    pub(crate) tables: Vec<Table>,
+    // /// Includes data section
+    pub(crate) memory: Option<Memory>,
+    pub(crate) globals: Vec<Global>,
+    pub(crate) exports: Vec<Export>,
+    /// Refers to a func in `Module.funcs`
+    pub(crate) start_fn: Option<u32>,
 }
 
 impl<'a> Module<'a> {
-    pub fn new(validate: bool) -> Self {
-        let mut s = Self::default();
-        s.validate = validate;
-        s
+    /// `validate` & `optimize` are currently ignored
+    pub fn new(_validate: bool, _optimize: bool) -> Self {
+        Module {
+            types: Vec::new(),
+            imports: Vec::new(),
+            funcs: Vec::new(),
+            tables: Vec::new(),
+            memory: None,
+            globals: Vec::new(),
+            exports: Vec::new(),
+            start_fn: None,
+        }
     }
 
-    pub(crate) fn add_export(&mut self, export_kind: ExportKind, export_name: &str) -> u32 {
-        self.export_section.add_export(export_kind, export_name) as u32
+    pub fn add_type(&mut self, fn_type: Type) -> TypeIndex {
+        self.types.push(fn_type);
+        let idx = (self.types.len() - 1) as u32;
+        TypeIndex { inner: Rc::new(Cell::new(idx)) }
     }
 
-    pub(crate) fn add_memory_descriptor(
-        &mut self,
-        descriptor: ResizableLimits,
-        export_name: Option<&'_ str>,
-    ) -> u32 {
-        let mem_index = self.memory_section.add_descriptor(descriptor) as u32;
-        if let Some(name) = export_name {
-            self.export_section.add_export(ExportKind::Memory(mem_index), name);
-        }
-
-        mem_index
+    pub fn add_import(&mut self, import: Import) {
+        self.imports.push(import);
+        // Reordering of `funcs` `tables` `memory` and `globals`
+        // happens when compiling before validating Not here
     }
 
-    pub(crate) fn add_table_descriptor(
-        &mut self,
-        descriptor: ResizableLimits,
-        export_name: Option<&'_ str>,
-    ) -> u32 {
-        let table_index = self.table_section.add_descriptor(descriptor) as u32;
-        if let Some(name) = export_name {
-            self.export_section.add_export(ExportKind::Table(table_index), name);
-        }
-
-        table_index
+    pub fn add_func(&mut self, func: Func<'a>) -> FnIndex {
+        self.funcs.push(func);
+        let idx = (self.funcs.len() - 1) as u32;
+        FnIndex { inner: Rc::new(Cell::new(idx)) }
     }
 
-    pub fn import_function<T: Into<String>>(
-        &mut self,
-        module: T,
-        external: T,
-        body: FnBody,
-    ) -> u32 {
-        let (params, return_type) = body.get_fn_type();
-        let type_idx = self.type_section.add_type_def(params, return_type) as u32;
-        let function_idx = self.fn_section.add_fn_decl(type_idx) as u32;
-        self.import_section
-            .add_import(module, external, ExternalKind::Function(function_idx));
-
-        function_idx
+    pub fn add_table(&mut self, table: Table) -> TableIndex {
+        self.tables.push(table);
+        let idx = (self.tables.len() - 1) as u32;
+        TableIndex { inner: Rc::new(Cell::new(idx)) }
     }
+    
+    pub fn set_mem(&mut self, memory: Memory) -> MemoryIndex {
+        let old = self.memory;
+        self.memory = Some(memory);
 
-    pub fn import_memory<T: Into<String>>(
-        &mut self,
-        module: T,
-        external: T,
-        descriptor: ResizableLimits,
-    ) -> u32 {
-        self.import_section
-            .add_import(module, external, ExternalKind::Memory(descriptor));
-        self.add_memory_descriptor(descriptor, None)
-    }
-
-    pub fn import_table<T: Into<String>>(
-        &mut self,
-        module: T,
-        external: T,
-        descriptor: ResizableLimits,
-    ) -> u32 {
-        self.import_section
-            .add_import(module, external, ExternalKind::Table(descriptor));
-        self.add_table_descriptor(descriptor, None)
-    }
-
-    pub fn import_global<T: Into<String>>(
-        &mut self,
-        module: T,
-        external: T,
-        descriptor: GlobalDescriptor,
-    ) -> u32 {
-        self.import_section
-            .add_import(module, external, ExternalKind::Global(descriptor));
-        self.add_global_descriptor(descriptor, None)
-    }
-
-    /// Footgun. Needs to be used after `add_import` otherwise this may generate a corrupt binary
-    pub fn add_function(&mut self, fn_body: FnBody<'a>, export_name: Option<&'_ str>) -> u32 {
-        let (params, return_type) = fn_body.get_fn_type();
-        let type_id = self.type_section.add_type_def(params, return_type) as u32;
-        let fn_index = self.fn_section.add_fn_decl(type_id) as u32;
-        if let Some(name) = export_name {
-            self.export_section.add_export(ExportKind::Function(fn_index), name);
-        }
-
-        self.code_section.add_fn_body(fn_body);
-
-        fn_index
-    }
-
-    pub fn add_global_descriptor(
-        &mut self,
-        descriptor: GlobalDescriptor,
-        export_name: Option<&'_ str>,
-    ) -> u32 {
-        let global_index = self.global_section.add_descriptor(descriptor) as u32;
-        if let Some(name) = export_name {
-            self.export_section.add_export(ExportKind::Global(global_index), name);
-        }
-
-        global_index
-    }
-
-    pub fn add_table(&mut self, table: Table, export_name: Option<&'_ str>) -> u32 {
-        let table_idx = self.table_section.add_descriptor(table.inner()) as u32;
-        self.element_section
-            .add_elements(table_idx, 0, table.refs().to_vec());
-        if let Some(name) = export_name {
-            self.export_section.add_export(ExportKind::Table(table_idx), name);
-        }
-
-        table_idx
-    }
-
-    pub fn add_memory(&mut self, memory: Memory, export_name: Option<&'_ str>) -> u32 {
-        let mem_idx = self.memory_section.add_descriptor(memory.inner()) as u32;
-
-        let slice = memory.mem_slice();
-        if !slice.is_empty() {
-            self.data_section.add_data(mem_idx, 0, slice.to_vec());
-        }
-        if let Some(name) = export_name {
-            self.export_section.add_export(ExportKind::Memory(mem_idx), name);
-        }
-
-        mem_idx
-    }
-
-    pub fn compile(self) -> Result<Vec<u8>, Error> {
-        let mut buff = Vec::new();
-        self.compile_stream(&mut buff)?;
-
-        Ok(buff)
-    }
-
-    // Does not need to validate fndecl and code section. These are always the same length
-    pub fn validate(&self) -> Result<(), ValidationError> {
-        if self.import_section.count() > 0 {
-            self.import_section.validate()?;
-        }
-
-        if self.table_section.count() > 0 {
-            self.table_section.validate()?;
-        }
-
-        if self.memory_section.count() > 0 {
-            self.memory_section.validate()?;
-        }
-
-        if self.export_section.count() > 0 {
-            self.export_section.validate()?;
-        }
-
-        self.type_section.validate()?;
-        self.code_section.validate()?;
-        Ok(())
-    }
-
-    pub fn compile_stream(mut self, writer: &mut impl Write) -> Result<(), Error> {
-        if self.optimize {
-            self.code_section = self.code_section.optimize();
-        }
-
-        if self.validate {
-            self.validate()?;
-        }
-
-        writer.write_all(&MAGIC)?;
-        if self.type_section.count() > 0 {
-            self.type_section.compile(writer)?;
-        }
-        self.import_section.compile(writer)?;
-        if self.code_section.count() > 0 {
-            self.fn_section.compile(self.code_section.count(), writer)?;
-        }
-        self.table_section.compile(writer)?;
-        self.memory_section.compile(writer)?;
-        self.global_section.compile(writer)?;
-        self.export_section.compile(writer)?;
-        self.element_section.compile(writer)?;
-        self.code_section.compile(writer)?;
-        self.data_section.compile(writer)?;
-        Ok(())
+        MemoryIndex { inner: Rc::new(Cell::new(1)) }
     }
 }
